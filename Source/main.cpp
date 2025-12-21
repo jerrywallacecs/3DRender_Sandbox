@@ -1,8 +1,5 @@
 ﻿#include "main.h"
 
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
-
 [[maybe_unused]] const unsigned int WIDTH = 800;
 [[maybe_unused]] const unsigned int HEIGHT = 600;
 
@@ -10,15 +7,17 @@ glm::vec4 backgroundColor(0.025f, 0.025f, 0.025f, 1.0f);
 
 float vertices[] =
 {
-	 // positions		// colors
-	 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom right
-	-0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
-	 0.0f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f  // top
+	 // positions		// colors		// texture coords
+	 0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
+	 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
+	-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
+	-0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f // top left
 };
 
 unsigned int indices[] =
 {
-	0, 1, 2
+	0, 1, 2,
+	0, 2, 3
 };
 
 int main()
@@ -79,10 +78,12 @@ int main()
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 	
 	// set vertex attributes pointers
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 *sizeof(float)));
+	glEnableVertexAttribArray(2);
 
 	/*
 		----------------- END OF BUFFERS -----------------
@@ -98,7 +99,73 @@ int main()
 		----------------- END OF SHADERS -----------------
 	*/
 
-	// main loop
+	/*
+		----------------- TEXTURES -----------------
+	*/
+
+	unsigned int moss;
+	glGenTextures(1, &moss);
+	glBindTexture(GL_TEXTURE_2D, moss);
+
+	// set the texture wrapping/filtering options (on currently bound texture)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	// load and generate texture
+	int width;
+	int height;
+	int numberChannels;
+	// using relative paths, fix this
+	stbi_set_flip_vertically_on_load(true);
+	unsigned char* data = stbi_load("../../../Source/Textures/T_MossBrick.png", &width, &height, &numberChannels, 0);
+
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cerr << "Failed to load texture!" << std::endl;
+	}
+
+	unsigned int rocky;
+	glGenTextures(1, &rocky);
+	glBindTexture(GL_TEXTURE_2D, rocky);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	data = stbi_load("../../../Source/Textures/T_Rocky.png", &width, &height, &numberChannels, 0);
+
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cerr << "Failed to load texture!" << std::endl;
+	}
+
+	// tell OpenGL which texture unit each shader sampler belongs to
+	ourShader.Activate();
+	ourShader.setInt("texture2", 1);
+	float textureOpacity = 0.0f;
+	ourShader.setFloat("opacity", textureOpacity); // sets default opacity to 0
+
+	/*
+		----------------- END OF TEXTURES -----------------
+	*/
+	
+	/*
+			----------------- MAIN LOOP -----------------
+	*/
+
 	while (!glfwWindowShouldClose(window))
 	{
 		
@@ -133,6 +200,24 @@ int main()
 			backgroundColor = { 0.025f, 0.025f, 0.025f, 1.0f };
 		}
 
+		// change textures
+		if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+		{
+			if (textureOpacity < 1.0f)
+			{
+				textureOpacity += .01f;
+				ourShader.setFloat("opacity", textureOpacity);
+			}
+		}
+		if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+		{
+			if (textureOpacity > 0)
+			{
+				textureOpacity -= .01f;
+				ourShader.setFloat("opacity", textureOpacity);
+			}
+		}
+
 		/*
 			----------------- END OF INPUT HANDLING -----------------
 		*/
@@ -147,8 +232,13 @@ int main()
 		ourShader.Activate();
 
 		// render
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, moss);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, rocky);
+
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
 		/*
@@ -162,6 +252,8 @@ int main()
 
 
 	// cleanup
+	stbi_image_free(data);
+
 	glfwDestroyWindow(window);
 	glfwTerminate();
 
