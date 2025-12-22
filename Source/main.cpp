@@ -289,6 +289,10 @@ int main()
 
 		cameraInput(window);
 
+		/*
+			----------------- END OF INPUT HANDLING -----------------
+		*/
+
 		glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
 		// clean the two buffers and assign the new color
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -309,7 +313,7 @@ int main()
 		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
 		projection = glm::perspective(glm::radians(45.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
 
-		// camera
+		// camera look at
 		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
 		// retrieve the matrix uniform locations
@@ -322,9 +326,13 @@ int main()
 		glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
 		ourShader.setMat4("projection", projection);
 		
-		// render box
+		/*
+			----------------- RENDERING -----------------
+		*/
+		
 		glBindVertexArray(VAO);
 
+		// render 10 boxes and rotate the first and any that are multiple of 3
 		for (unsigned int i = 0; i < 10; i++)
 		{
 			glm::mat4 model = glm::mat4(1.0f);
@@ -345,10 +353,9 @@ int main()
 
 		// unbind
 		glBindVertexArray(0);
-		
 
 		/*
-			----------------- END OF DRAW CAll -----------------
+			----------------- END OF RENDERING -----------------
 		*/
 
 		// swap buffers and poll IO events
