@@ -1,24 +1,88 @@
 ﻿#include "main.h"
 
-[[maybe_unused]] const unsigned int WIDTH = 800;
-[[maybe_unused]] const unsigned int HEIGHT = 600;
+const unsigned int WIDTH = 1280;
+const unsigned int HEIGHT = 720;
+
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
 
 glm::vec4 backgroundColor(0.025f, 0.025f, 0.025f, 1.0f);
 
-float vertices[] =
-{
-	 // positions		// colors		// texture coords
-	 0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
-	 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
-	-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
-	-0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f // top left
+float vertices[] = {
+	// Position                // UV
+	-0.5f, -0.5f, -0.5f,        0.0f, 0.0f,
+	 0.5f, -0.5f, -0.5f,        1.0f, 0.0f,
+	 0.5f,  0.5f, -0.5f,        1.0f, 1.0f,
+	 0.5f,  0.5f, -0.5f,        1.0f, 1.0f,
+	-0.5f,  0.5f, -0.5f,        0.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,        0.0f, 0.0f,
+
+	-0.5f, -0.5f,  0.5f,        0.0f, 0.0f,
+	 0.5f, -0.5f,  0.5f,        1.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,        1.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,        1.0f, 1.0f,
+	-0.5f,  0.5f,  0.5f,        0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f,        0.0f, 0.0f,
+
+	-0.5f,  0.5f,  0.5f,        1.0f, 0.0f,
+	-0.5f,  0.5f, -0.5f,        1.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,        0.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,        0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f,        0.0f, 0.0f,
+	-0.5f,  0.5f,  0.5f,        1.0f, 0.0f,
+
+	 0.5f,  0.5f,  0.5f,        1.0f, 0.0f,
+	 0.5f,  0.5f, -0.5f,        1.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,        0.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,        0.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f,        0.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,        1.0f, 0.0f,
+
+	-0.5f, -0.5f, -0.5f,        0.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,        1.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f,        1.0f, 0.0f,
+	 0.5f, -0.5f,  0.5f,        1.0f, 0.0f,
+	-0.5f, -0.5f,  0.5f,        0.0f, 0.0f,
+	-0.5f, -0.5f, -0.5f,        0.0f, 1.0f,
+
+	-0.5f,  0.5f, -0.5f,        0.0f, 1.0f,
+	 0.5f,  0.5f, -0.5f,        1.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,        1.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,        1.0f, 0.0f,
+	-0.5f,  0.5f,  0.5f,        0.0f, 0.0f,
+	-0.5f,  0.5f, -0.5f,        0.0f, 1.0f
 };
 
-unsigned int indices[] =
-{
-	0, 1, 2,
-	0, 2, 3
+glm::vec3 cubePosition[] = {
+	glm::vec3(0.0f, 0.0f, 0.0f),
+	glm::vec3(2.0f, 5.0f, -15.0f),
+	glm::vec3(-1.5f, -2.2f, -2.5f),
+	glm::vec3(-3.8f, -2.0f, -12.3f),
+	glm::vec3(2.4f, -0.4f, -3.5f),
+	glm::vec3(-1.7f, 3.0f, -7.5f),
+	glm::vec3(1.3f, -2.0f, -2.5f),
+	glm::vec3(1.5f, 2.0f, -2.5f),
+	glm::vec3(1.5f, 0.2f, -1.5f),
+	glm::vec3(-1.3f, 1.0f, -1.5f)
 };
+
+// camera variables
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+void cameraInput(GLFWwindow* window)
+{
+	const float cameraSpeed = 2.5f * deltaTime;
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		cameraPos += cameraSpeed * cameraFront;
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		cameraPos -= cameraSpeed * cameraFront;
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+}
 
 int main()
 {
@@ -29,10 +93,13 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+	// windowed
+	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "LearnOpenGL", nullptr, nullptr);
 
-	GLFWwindow* window = glfwCreateWindow(mode->width, mode->height, "LearnOpenGL", monitor, nullptr);
+	// fullscreen
+	//GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+	//const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+	//GLFWwindow* window = glfwCreateWindow(mode->width, mode->height, "LearnOpenGL", monitor, nullptr);
 
 	if (window == nullptr)
 	{
@@ -49,7 +116,10 @@ int main()
 		return -1;
 	}
 
-	glViewport(0, 0, mode->width, mode->height);
+	glViewport(0, 0, WIDTH, HEIGHT);
+
+	// enables depth buffer
+	glEnable(GL_DEPTH_TEST);
 
 	/* 
 		----------------- BUFFERS -----------------
@@ -62,10 +132,6 @@ int main()
 	// vertex array
 	unsigned int VAO;
 	glGenVertexArrays(1, &VAO); // generate unique ID for the buffer
-	
-	// index buffer
-	unsigned int EBO;
-	glGenBuffers(1, &EBO); // generates unique ID for the buffer
 
 	glBindVertexArray(VAO);
 
@@ -73,17 +139,15 @@ int main()
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 	
-	// copy our index array in an element buffer for OpenGL to use
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-	
 	// set vertex attributes pointers
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	
+	// Position (location = 0)
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+
+	// UVs (location = 1)
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 *sizeof(float)));
-	glEnableVertexAttribArray(2);
 
 	/*
 		----------------- END OF BUFFERS -----------------
@@ -113,23 +177,24 @@ int main()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+	stbi_set_flip_vertically_on_load(true);
 	// load and generate texture
 	int width;
 	int height;
 	int numberChannels;
 	// using relative paths, fix this
-	stbi_set_flip_vertically_on_load(true);
-	unsigned char* data = stbi_load("../../../Source/Textures/T_MossBrick.png", &width, &height, &numberChannels, 0);
+	unsigned char* data = stbi_load("../../../Source/Textures/T_Container.jpg", &width, &height, &numberChannels, 0);
 
 	if (data)
 	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 	else
 	{
-		std::cerr << "Failed to load texture!" << std::endl;
+		std::cout << "Failed to load texture!" << std::endl;
 	}
+	stbi_image_free(data);
 
 	unsigned int rocky;
 	glGenTextures(1, &rocky);
@@ -149,11 +214,13 @@ int main()
 	}
 	else
 	{
-		std::cerr << "Failed to load texture!" << std::endl;
+		std::cout << "Failed to load texture!" << std::endl;
 	}
+	stbi_image_free(data);
 
 	// tell OpenGL which texture unit each shader sampler belongs to
 	ourShader.Activate();
+	ourShader.setInt("texture1", 0);
 	ourShader.setInt("texture2", 1);
 	float textureOpacity = 0.0f;
 	ourShader.setFloat("opacity", textureOpacity); // sets default opacity to 0
@@ -168,24 +235,26 @@ int main()
 
 	while (!glfwWindowShouldClose(window))
 	{
-		
+		// Handling delta time
+		float currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
 		/*
 			----------------- INPUT HANDLING -----------------
 		*/
 
-
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		{
 			glfwSetWindowShouldClose(window, true);
-			return 0;
 		}
 
 		// view in wireframe
-		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
 		{
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		}
-		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_RELEASE)
+		if (glfwGetKey(window, GLFW_KEY_F) == GLFW_RELEASE)
 		{
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
@@ -218,28 +287,65 @@ int main()
 			}
 		}
 
-		/*
-			----------------- END OF INPUT HANDLING -----------------
-		*/
+		cameraInput(window);
 
 		glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
 		// clean the two buffers and assign the new color
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		/*
-			----------------- DRAW CAll -----------------
-		*/
-		ourShader.Activate();
-
-		// render
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, moss);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, rocky);
 
+		ourShader.Activate();
+
+		// create transformations
+		glm::mat4 model = glm::mat4(1.0f);
+		glm::mat4 view = glm::mat4(1.0f);
+		glm::mat4 projection = glm::mat4(1.0f);
+		
+		model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
+		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+		projection = glm::perspective(glm::radians(45.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
+
+		// camera
+		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+
+		// retrieve the matrix uniform locations
+		unsigned int modelLocation = glGetUniformLocation(ourShader.ID, "model");
+		unsigned int viewLocation = glGetUniformLocation(ourShader.ID, "view");
+
+
+		// pass the locations on to the shaders
+		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
+		ourShader.setMat4("projection", projection);
+		
+		// render box
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+		for (unsigned int i = 0; i < 10; i++)
+		{
+			glm::mat4 model = glm::mat4(1.0f);
+			model = glm::translate(model, cubePosition[i]);
+			float angle = 20.0f * i;
+
+			if (i == 1 || i % 3 == 0)
+			{
+				model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(1.0f, 0.3f, 0.5f));
+			}
+			else
+			{
+				model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+			}
+			ourShader.setMat4("model", model);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
+
+		// unbind
 		glBindVertexArray(0);
+		
 
 		/*
 			----------------- END OF DRAW CAll -----------------
@@ -252,9 +358,9 @@ int main()
 
 
 	// cleanup
-	stbi_image_free(data);
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteBuffers(1, &VBO);
 
-	glfwDestroyWindow(window);
 	glfwTerminate();
 
 	return 0;

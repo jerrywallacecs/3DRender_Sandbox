@@ -1,0 +1,23 @@
+Notes on Coordinate Systems
+---------------------------
+OpenGL expects all vertices (that we want visible) to be normalized.
+This is referred to as normalized device coordinates (NDC).
+
+Some calculations are easier in certain coordinate systems.
+There are 5 we should know:
+- Local Space or Object Space
+- World Space
+- View Space or Eye Space
+- Clip Space
+- Screen Space
+
+To transform coords from one space to the next, we use several
+transformation matrices, the most important being:
+- Model Matrix
+- View Matrix
+- Projection Matrix
+
+Model Matrix: Local Space -> World Space
+View Matrix: World Space -> View Space
+Projection Matrix: View Space -> Clip Space
+Viewport Transform: Clip Space -> Screen Space
