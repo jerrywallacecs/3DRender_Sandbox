@@ -2,7 +2,15 @@
 
 project("OpenGL_Framework")
 
-add_executable(OpenGL_Framework "Source/main.cpp" "Source/main.h" "Source/External/glad.c" "Source/External/stb_image.h" "Source/Shaders/Shader.h" "Source/Shaders/Shader.cpp")
+add_executable(OpenGL_Framework
+	"Source/main.cpp"
+	"Source/main.h"
+	"Source/Camera.hpp"
+	"Source/External/glad.c" 
+	"Source/External/stb_image.h" 
+	"Source/Shaders/Shader.h" 
+	"Source/Shaders/Shader.cpp"
+)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET OpenGL_Framework PROPERTY CXX_STANDARD 20)

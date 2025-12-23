@@ -1,7 +1,8 @@
 ﻿#ifndef MAIN_CLASS_H
 #define MAIN_CLASS_H
 
-#include <Shader.h>
+#include "Shader.h"
+#include "Camera.hpp"
 
 #include <GLFW/glfw3.h> // util lib for window, io, and context management
 
