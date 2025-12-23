@@ -65,6 +65,7 @@ int main()
 
 	// currently using relative paths. works but need to fix cmake
 	Shader ourShader("../../../Source/Shaders/default.vert", "../../../Source/Shaders/default.frag");
+	Shader groundShader("../../../Source/Shaders/default.vert", "../../../Source/Shaders/default.frag");
 
 	float vertices[] = {
 		// Position                // UV
@@ -112,28 +113,30 @@ int main()
 	};
 
 	glm::vec3 cubePosition[] = {
-		glm::vec3(0.0f, 0.0f, 0.0f),
-		glm::vec3(2.0f, 5.0f, -15.0f),
-		glm::vec3(-1.5f, -2.2f, -2.5f),
-		glm::vec3(-3.8f, -2.0f, -12.3f),
-		glm::vec3(2.4f, -0.4f, -3.5f),
-		glm::vec3(-1.7f, 3.0f, -7.5f),
-		glm::vec3(1.3f, -2.0f, -2.5f),
-		glm::vec3(1.5f, 2.0f, -2.5f),
-		glm::vec3(1.5f, 0.2f, -1.5f),
-		glm::vec3(-1.3f, 1.0f, -1.5f)
+		glm::vec3(-5.0f, 2.5f, -10.0f),
+		glm::vec3(8.0f, 5.0f, -20.0f),
+		glm::vec3(-10.0f, 3.0f, -5.0f),
+		glm::vec3(12.0f, 4.2f, -15.0f),
+		glm::vec3(3.0f, 2.8f, -8.0f),
+		glm::vec3(-7.0f, 3.5f, -12.0f),
+		glm::vec3(5.0f, 2.2f, -3.0f),
+		glm::vec3(10.0f, 2.7f, -6.0f),
+		glm::vec3(-3.0f, 3.0f, -1.0f),
+		glm::vec3(0.0f, 2.4f, -18.0f)
 	};
+
+
 
 	float groundVertices[] =
 	{
-		// POSITION			// UV
-		-5.0f, 0.0f, -5.0f, 0.0f, 0.0f,
-		 5.0f, 0.0f, -5.0f, 1.0f, 0.0f,
-		 5.0f, 0.0f,  5.0f, 1.0f, 1.0f,
+		// POSITION			  // UV
+		-15.0f, 0.0f, -15.0f, 0.0f, 0.0f,
+		 15.0f, 0.0f, -15.0f, 6.0f, 0.0f,
+		 15.0f, 0.0f,  15.0f, 6.0f, 6.0f,
 
-		-5.0f, 0.0f, -5.0f, 0.0f, 0.0f,
-		 5.0f, 0.0f,  5.0f, 1.0f, 1.0f,
-		-5.0f, 0.0f,  5.0f, 0.0f, 1.0f
+		-15.0f, 0.0f, -15.0f, 0.0f, 0.0f,
+		 15.0f, 0.0f,  15.0f, 6.0f, 6.0f,
+		-15.0f, 0.0f,  15.0f, 0.0f, 6.0f
 	};
 
 	/* 
@@ -163,6 +166,10 @@ int main()
 	glEnableVertexAttribArray(1);
 
 	// GROUND
+
+
+
+
 	unsigned int groundVBO, groundVAO;
 	glGenVertexArrays(1, &groundVAO);
 	glGenBuffers(1, &groundVBO);
@@ -190,9 +197,10 @@ int main()
 	glGenTextures(1, &texture1);
 	glBindTexture(GL_TEXTURE_2D, texture1);
 
-	// set the texture wrapping/filtering options (on currently bound texture)
+	// set the texture wrapping options (on currently bound texture)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	// set the texture filtering options (on currently bound texture)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -244,6 +252,11 @@ int main()
 	float textureOpacity = 0.0f;
 	ourShader.setFloat("opacity", textureOpacity); // sets default opacity to 0
 
+	groundShader.Activate();
+	groundShader.setInt("texture1", 0);
+	groundShader.setInt("texture2", 1);
+	groundShader.setFloat("opacity", 1.0f); // sets ground texture to moss
+
 	/*
 		----------------- END OF TEXTURES -----------------
 	*/
@@ -264,6 +277,8 @@ int main()
 		/*
 			----------------- INPUT HANDLING -----------------
 		*/
+
+		ourShader.Activate();
 
 		// change textures
 		if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
@@ -301,8 +316,6 @@ int main()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
 
-		ourShader.Activate();
-
 		// pass projection matrix to shader
 		glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
 		ourShader.setMat4("projection", projection);
@@ -336,9 +349,20 @@ int main()
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
+		// GROUND
+
+
+		groundShader.Activate();
+
+		// pass projection matrix to shader
+		groundShader.setMat4("projection", projection);
+
+		// camera/view transformation
+		groundShader.setMat4("view", view);
+
 		glm::mat4 groundModel = glm::mat4(1.0f);
 		groundModel = glm::translate(groundModel, glm::vec3(0.0f, -1.0f, 0.0f));
-		ourShader.setMat4("model", groundModel);
+		groundShader.setMat4("model", groundModel);
 		glBindVertexArray(groundVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -400,13 +424,13 @@ void processInput(GLFWwindow* window)
 		glfwSetWindowShouldClose(window, true);
 
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		camera.ProcessKeyboard(FORWARD, deltaTime, FREE);
+		camera.ProcessKeyboard(FORWARD, deltaTime, FPS);
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camera.ProcessKeyboard(BACKWARD, deltaTime, FREE);
+		camera.ProcessKeyboard(BACKWARD, deltaTime, FPS);
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		camera.ProcessKeyboard(LEFT, deltaTime, FREE);
+		camera.ProcessKeyboard(LEFT, deltaTime, FPS);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		camera.ProcessKeyboard(RIGHT, deltaTime, FREE);
+		camera.ProcessKeyboard(RIGHT, deltaTime, FPS);
 
 	// view in wireframe
 	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
