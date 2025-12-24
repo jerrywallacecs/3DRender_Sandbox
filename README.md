@@ -41,7 +41,7 @@ The repository incrementally implements core graphics programming concepts, incl
 
 ## Current Features
 
-https://github.com/user-attachments/assets/dda9fac7-c606-4431-92d0-45652399aae3
+https://github.com/user-attachments/assets/a7aa44d3-4c2a-407c-9135-455bd4dcc7c8
 
 - Textured cubes rendered in 3D space
 - Scalable ground plane with tiled textures
