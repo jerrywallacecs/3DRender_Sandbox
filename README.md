@@ -4,7 +4,7 @@
 
 ## Overview
 
-**OpenGL_Lessons** is my hands-on journey through *LearnOpenGL*, where I implement concepts from scratch to deeply understand how modern OpenGL works under the hood.
+This is my hands-on journey through *LearnOpenGL*, where I implement concepts from scratch to deeply understand how modern OpenGL works under the hood.
 
 This repository focuses on **learning by doing**. The goal is not just to render things, but to understand *why* they work.
 
@@ -41,7 +41,7 @@ The repository incrementally implements core graphics programming concepts, incl
 
 ## Current Features
 
-https://github.com/user-attachments/assets/9879210f-7e69-4976-a7e4-c091b767fb7c
+https://github.com/user-attachments/assets/dda9fac7-c606-4431-92d0-45652399aae3
 
 - Textured cubes rendered in 3D space
 - Scalable ground plane with tiled textures
