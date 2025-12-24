@@ -1,9 +1,10 @@
 ﻿#include "main.h"
 
+unsigned int loadTexture(const char* filepath);
+void processInput(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void processInput(GLFWwindow* window);
 
 // settings
 const unsigned int WIDTH = 1280;
@@ -20,6 +21,9 @@ float lastY = (float)HEIGHT / 2.0;
 // timing
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+
+// light source
+glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
 int main()
 {
@@ -66,6 +70,7 @@ int main()
 	// currently using relative paths. works but need to fix cmake
 	Shader ourShader("../../../Source/Shaders/default.vert", "../../../Source/Shaders/default.frag");
 	Shader groundShader("../../../Source/Shaders/default.vert", "../../../Source/Shaders/default.frag");
+	Shader lightShader("../../../Source/Shaders/light.vert", "../../../Source/Shaders/light.frag");
 
 	float vertices[] = {
 		// Position                // UV
@@ -125,18 +130,16 @@ int main()
 		glm::vec3(0.0f, 2.4f, -18.0f)
 	};
 
-
-
 	float groundVertices[] =
 	{
 		// POSITION			  // UV
 		-15.0f, 0.0f, -15.0f, 0.0f, 0.0f,
-		 15.0f, 0.0f, -15.0f, 6.0f, 0.0f,
-		 15.0f, 0.0f,  15.0f, 6.0f, 6.0f,
+		 15.0f, 0.0f, -15.0f, 10.0f, 0.0f,
+		 15.0f, 0.0f,  15.0f, 10.0f, 10.0f,
 
 		-15.0f, 0.0f, -15.0f, 0.0f, 0.0f,
-		 15.0f, 0.0f,  15.0f, 6.0f, 6.0f,
-		-15.0f, 0.0f,  15.0f, 0.0f, 6.0f
+		 15.0f, 0.0f,  15.0f, 10.0f, 10.0f,
+		-15.0f, 0.0f,  15.0f, 0.0f, 10.0f
 	};
 
 	/* 
@@ -166,10 +169,6 @@ int main()
 	glEnableVertexAttribArray(1);
 
 	// GROUND
-
-
-
-
 	unsigned int groundVBO, groundVAO;
 	glGenVertexArrays(1, &groundVAO);
 	glGenBuffers(1, &groundVBO);
@@ -183,86 +182,34 @@ int main()
 	// UVs (location = 1)
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
+
+	// LIGHT - seperate VAO as lights do not need uv's or normals
+	unsigned int lightVAO;
+	glGenVertexArrays(1, &lightVAO);
+	glBindVertexArray(lightVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
 	
 
 	/*
 		----------------- END OF BUFFERS -----------------
 	*/
 
-	/*
-		----------------- TEXTURES -----------------
-	*/
-
-	unsigned int texture1;
-	glGenTextures(1, &texture1);
-	glBindTexture(GL_TEXTURE_2D, texture1);
-
-	// set the texture wrapping options (on currently bound texture)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	// set the texture filtering options (on currently bound texture)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	stbi_set_flip_vertically_on_load(true);
-	// load and generate texture
-	int width;
-	int height;
-	int numberChannels;
-	// using relative paths, fix this
-	unsigned char* data = stbi_load("../../../Source/Textures/T_Container.jpg", &width, &height, &numberChannels, 0);
-
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		std::cout << "Failed to load texture!" << std::endl;
-	}
-	stbi_image_free(data);
-
-	unsigned int texture2;
-	glGenTextures(1, &texture2);
-	glBindTexture(GL_TEXTURE_2D, texture2);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	data = stbi_load("../../../Source/Textures/T_MossBrick.png", &width, &height, &numberChannels, 0);
-
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		std::cout << "Failed to load texture!" << std::endl;
-	}
-	stbi_image_free(data);
-
-	// tell OpenGL which texture unit each shader sampler belongs to
+	unsigned int crateTexture = loadTexture("../../../Source/Textures/T_Crate.jpg");
+	unsigned int mossTexture = loadTexture("../../../Source/Textures/T_MossBrick.png");
+	
+	// some lighting ya know the vibes
 	ourShader.Activate();
-	ourShader.setInt("texture1", 0);
-	ourShader.setInt("texture2", 1);
-	float textureOpacity = 0.0f;
-	ourShader.setFloat("opacity", textureOpacity); // sets default opacity to 0
+	ourShader.setVec3("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
+	ourShader.setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
 
 	groundShader.Activate();
-	groundShader.setInt("texture1", 0);
-	groundShader.setInt("texture2", 1);
-	groundShader.setFloat("opacity", 1.0f); // sets ground texture to moss
+	groundShader.setVec3("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
+	groundShader.setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
 
-	/*
-		----------------- END OF TEXTURES -----------------
-	*/
 
-	
-	
 	/*
 			----------------- MAIN LOOP -----------------
 	*/
@@ -274,101 +221,88 @@ int main()
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		/*
-			----------------- INPUT HANDLING -----------------
-		*/
-
-		ourShader.Activate();
-
-		// change textures
-		if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-		{
-			if (textureOpacity < 1.0f)
-			{
-				textureOpacity += .01f;
-				ourShader.setFloat("opacity", textureOpacity);
-			}
-		}
-		if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-		{
-			if (textureOpacity > 0)
-			{
-				textureOpacity -= .01f;
-				ourShader.setFloat("opacity", textureOpacity);
-			}
-		}
+		glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
+		glm::mat4 view = camera.GetViewMatrix();
 
 		processInput(window);
-
-		/*
-			----------------- END OF INPUT HANDLING -----------------
-		*/
-
-
 
 		glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
 		// clean the two buffers and assign the new color
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// bind textures on coresponding texture units
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture1);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, texture2);
+		//////////////////////////////////////////////////////////
 
-		// pass projection matrix to shader
-		glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
-		ourShader.setMat4("projection", projection);
-
-		// camera/view transformation
-		glm::mat4 view = camera.GetViewMatrix();
-		ourShader.setMat4("view", view);
-		
-		/*
-			----------------- RENDERING -----------------
-		*/
-		
-		glBindVertexArray(VAO);
-
-		// render 10 boxes and rotate the first and any that are multiple of 3
-		for (unsigned int i = 0; i < 10; i++)
-		{
-			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, cubePosition[i]);
-			float angle = 20.0f * i;
-
-			if (i == 1 || i % 3 == 0)
-			{
-				model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(1.0f, 0.3f, 0.5f));
-			}
-			else
-			{
-				model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-			}
-			ourShader.setMat4("model", model);
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-		}
-
-		// GROUND
-
-
+		// GROUND RENDER
 		groundShader.Activate();
+		glActiveTexture(GL_TEXTURE0); // select texture unit 0
+		glBindTexture(GL_TEXTURE_2D, mossTexture); // bind texture
+		groundShader.setInt("m_texture", 0); // tell the shader to use texture unit 0
 
-		// pass projection matrix to shader
-		groundShader.setMat4("projection", projection);
-
-		// camera/view transformation
-		groundShader.setMat4("view", view);
-
+		// pass uniforms that change per frame
+		groundShader.setMat4("projection", projection); // projection matrix
+		groundShader.setMat4("view", view); // camera/view transformation
+		
+		// transformations
 		glm::mat4 groundModel = glm::mat4(1.0f);
 		groundModel = glm::translate(groundModel, glm::vec3(0.0f, -1.0f, 0.0f));
 		groundShader.setMat4("model", groundModel);
+
+		// render
 		glBindVertexArray(groundVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		/*
-			----------------- END OF RENDERING -----------------
-		*/
+		//////////////////////////////////////////////////////////
+
+		// CRATE RENDER
+		ourShader.Activate();
+
+		// textures
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, crateTexture);
+		ourShader.setInt("m_texture", 0);
+
+		// uniforms
+		ourShader.setMat4("projection", projection);
+		ourShader.setMat4("view", view);
+
+		// crate1 transformations
+		glm::mat4 crate1 = glm::mat4(1.0f);
+		crate1 = glm::translate(crate1, glm::vec3(0.0f, -0.5f, 0.0f));
+		ourShader.setMat4("model", crate1);
+
+		// crate1 render
+		glBindVertexArray(VAO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		// crate2 transformations
+		glm::mat4 crate2 = glm::mat4(1.0f);
+		crate2 = glm::translate(crate2, glm::vec3(0.0f, 0.375f, 0.0f));
+		crate2 = glm::rotate(crate2, glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // args: matrix to rotate, amount of rotation in radians, axis of rotation
+		crate2 = glm::scale(crate2, glm::vec3(0.75f, 0.75f, 0.75f));
+		ourShader.setMat4("model", crate2);
+
+		// crate2 render
+		glBindVertexArray(VAO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		//////////////////////////////////////////////////////////
+
+		// LIGHT RENDER
+		lightShader.Activate();
+
+		// uniforms
+		lightShader.setMat4("projection", projection);
+		lightShader.setMat4("view", view);
+
+		// transformations
+		glm::mat4 light = glm::mat4(1.0f);
+		light = glm::translate(light, lightPos);
+		lightShader.setMat4("model", light);
+
+		// render
+		glBindVertexArray(lightVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
 
 		// swap buffers and poll IO events
 		glfwSwapBuffers(window);
@@ -379,10 +313,52 @@ int main()
 	// cleanup
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
+	glDeleteVertexArrays(1, &groundVAO);
+	glDeleteBuffers(1, &groundVBO);
+	glDeleteVertexArrays(1, &lightVAO);
 
 	glfwTerminate();
 
 	return 0;
+}
+
+// takes in filepath and returns a texture that was created from that texture file
+unsigned int loadTexture(const char* filepath)
+{
+	int textureWidth;
+	int textureHeight;
+	int textureChannels;
+	unsigned char* textureData;
+
+	unsigned int textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+
+	// set the texture wrapping options (on currently bound texture)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	// set the texture filtering options (on currently bound texture)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	stbi_set_flip_vertically_on_load(true);
+
+	// load the texture data
+	textureData = stbi_load(filepath, &textureWidth, &textureHeight, &textureChannels, 0);
+
+	// could use a function here
+	if (textureData)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, textureWidth, textureHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, textureData);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "Failed to load texture!" << std::endl;
+	}
+	stbi_image_free(textureData);
+
+	return textureID;
 }
 
 
@@ -431,6 +407,8 @@ void processInput(GLFWwindow* window)
 		camera.ProcessKeyboard(LEFT, deltaTime, FPS);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		camera.ProcessKeyboard(RIGHT, deltaTime, FPS);
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+		camera.ProcessKeyboard(UP, deltaTime, FPS);
 
 	// view in wireframe
 	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)

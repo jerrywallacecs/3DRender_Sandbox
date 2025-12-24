@@ -1,0 +1,43 @@
+Notes on Coordinate Systems
+---------------------------
+OpenGL expects all vertices (that we want visible) to be normalized.
+This is referred to as normalized device coordinates (NDC).
+
+Some calculations are easier in certain coordinate systems.
+There are 5 we should know:
+- Local Space or Object Space
+- World Space
+- View Space or Eye Space
+- Clip Space
+- Screen Space
+
+To transform coords from one space to the next, we use several
+transformation matrices, the most important being:
+- Model Matrix
+- View Matrix
+- Projection Matrix
+
+Model Matrix: Local Space -> World Space
+View Matrix: World Space -> View Space
+Projection Matrix: View Space -> Clip Space
+Viewport Transform: Clip Space -> Screen Space
+
+Notes on Transformations
+---------------------------
+1. Object-local transformations (typical for moving/rotating/scaling) an object in the world:
+
+glm::mat4 model = glm::mat4(1.0f);                  // start identity
+model = glm::translate(model, position);            // move the object to world position
+model = glm::rotate(model, angle, axis);            // rotate around its origin
+model = glm::scale(model, scale);                   // scale the object
+
+- Scaled first, then rotated, then translated
+
+2. rotation around a point other than the origin
+
+glm::mat4 model = glm::mat4(1.0f);
+model = glm::translate(model, pivotPoint);
+model = glm::rotate(model, angle, axis);
+model = glm::translate(model, -pivotPoint);
+
+- Translated to a point, rotated, then translated back

@@ -14,7 +14,8 @@ enum Camera_Movement
 	FORWARD,
 	BACKWARD,
 	LEFT,
-	RIGHT
+	RIGHT,
+	UP
 };
 
 // defines camera types
@@ -27,7 +28,7 @@ enum Camera_Type
 // default camera values
 const float YAW = -90.0f;
 const float PITCH = 0.0f;
-const float SPEED = 10.0f;
+const float SPEED = 5.0f;
 const float SENSITIVITY = 0.1f;
 const float FOV = 60.0f;
 
@@ -93,6 +94,8 @@ public:
 				Position -= Right * velocity;
 			if (direction == RIGHT)
 				Position += Right * velocity;
+			if (direction == UP)
+				Position += WorldUp * velocity;
 		}
 
 		// classic fps camera, locked to x/z plane
