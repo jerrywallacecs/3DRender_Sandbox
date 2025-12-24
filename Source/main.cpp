@@ -23,7 +23,7 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 // light source
-glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+glm::vec3 lightPosition(0.0f, 1.0f, 2.0f);
 
 int main()
 {
@@ -73,48 +73,48 @@ int main()
 	Shader lightShader("../../../Source/Shaders/light.vert", "../../../Source/Shaders/light.frag");
 
 	float vertices[] = {
-		// Position                // UV
-		-0.5f, -0.5f, -0.5f,        0.0f, 0.0f,
-		 0.5f, -0.5f, -0.5f,        1.0f, 0.0f,
-		 0.5f,  0.5f, -0.5f,        1.0f, 1.0f,
-		 0.5f,  0.5f, -0.5f,        1.0f, 1.0f,
-		-0.5f,  0.5f, -0.5f,        0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,        0.0f, 0.0f,
+		// Position				// NORMALS				// UV
+		-0.5f, -0.5f, -0.5f,	0.0f, 0.0f, -1.0f,	    0.0f, 0.0f,
+		 0.5f, -0.5f, -0.5f,	0.0f, 0.0f, -1.0f,		1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,	0.0f, 0.0f, -1.0f,		1.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,	0.0f, 0.0f, -1.0f,		1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,	0.0f, 0.0f, -1.0f,		0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,	0.0f, 0.0f, -1.0f,		0.0f, 0.0f,
 
-		-0.5f, -0.5f,  0.5f,        0.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,        1.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,        1.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,        1.0f, 1.0f,
-		-0.5f,  0.5f,  0.5f,        0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,        0.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,	0.0f, 0.0f, 1.0f,		0.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,	0.0f, 0.0f, 1.0f,		1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,	0.0f, 0.0f, 1.0f,		1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,	0.0f, 0.0f, 1.0f,		1.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,	0.0f, 0.0f, 1.0f,		0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,	0.0f, 0.0f, 1.0f,		0.0f, 0.0f,
 
-		-0.5f,  0.5f,  0.5f,        1.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,        1.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,        0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,        0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,        0.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,        1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,	-1.0f, 0.0f, 0.0f,		1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,	-1.0f, 0.0f, 0.0f,		1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,	-1.0f, 0.0f, 0.0f,		0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,	-1.0f, 0.0f, 0.0f,		0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,	-1.0f, 0.0f, 0.0f,		0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,	-1.0f, 0.0f, 0.0f,		1.0f, 0.0f,
 
-		 0.5f,  0.5f,  0.5f,        1.0f, 0.0f,
-		 0.5f,  0.5f, -0.5f,        1.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,        0.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,        0.0f, 1.0f,
-		 0.5f, -0.5f,  0.5f,        0.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,        1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,	1.0f, 0.0f, 0.0f,		1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,	1.0f, 0.0f, 0.0f,		1.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,	1.0f, 0.0f, 0.0f,		0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,	1.0f, 0.0f, 0.0f,		0.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,	1.0f, 0.0f, 0.0f,		0.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,	1.0f, 0.0f, 0.0f,		1.0f, 0.0f,
 
-		-0.5f, -0.5f, -0.5f,        0.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,        1.0f, 1.0f,
-		 0.5f, -0.5f,  0.5f,        1.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,        1.0f, 0.0f,
-		-0.5f, -0.5f,  0.5f,        0.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,        0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,	0.0f, -1.0f, 0.0f,		0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,	0.0f, -1.0f, 0.0f,		1.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,	0.0f, -1.0f, 0.0f,		1.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,	0.0f, -1.0f, 0.0f,		1.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,	0.0f, -1.0f, 0.0f,		0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,	0.0f, -1.0f, 0.0f,		0.0f, 1.0f,
 
-		-0.5f,  0.5f, -0.5f,        0.0f, 1.0f,
-		 0.5f,  0.5f, -0.5f,        1.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,        1.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,        1.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,        0.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,        0.0f, 1.0f
+		-0.5f,  0.5f, -0.5f,	0.0f, 1.0f, 0.0f,		0.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,	0.0f, 1.0f, 0.0f,		1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,	0.0f, 1.0f, 0.0f,		1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,	0.0f, 1.0f, 0.0f,		1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,	0.0f, 1.0f, 0.0f,		0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,	0.0f, 1.0f, 0.0f,		0.0f, 1.0f
 	};
 
 	glm::vec3 cubePosition[] = {
@@ -132,14 +132,14 @@ int main()
 
 	float groundVertices[] =
 	{
-		// POSITION			  // UV
-		-15.0f, 0.0f, -15.0f, 0.0f, 0.0f,
-		 15.0f, 0.0f, -15.0f, 10.0f, 0.0f,
-		 15.0f, 0.0f,  15.0f, 10.0f, 10.0f,
+		// Position             // Normal        // UV
+		-15.0f, 0.0f, -15.0f,   0,1,0,            0.0f, 0.0f,
+		 15.0f, 0.0f, -15.0f,   0,1,0,           10.0f, 0.0f,
+		 15.0f, 0.0f,  15.0f,   0,1,0,           10.0f,10.0f,
 
-		-15.0f, 0.0f, -15.0f, 0.0f, 0.0f,
-		 15.0f, 0.0f,  15.0f, 10.0f, 10.0f,
-		-15.0f, 0.0f,  15.0f, 0.0f, 10.0f
+		-15.0f, 0.0f, -15.0f,   0,1,0,            0.0f, 0.0f,
+		 15.0f, 0.0f,  15.0f,   0,1,0,           10.0f,10.0f,
+		-15.0f, 0.0f,  15.0f,   0,1,0,            0.0f,10.0f
 	};
 
 	/* 
@@ -161,12 +161,16 @@ int main()
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 	
 	// Position (location = 0)
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	// UVs (location = 1)
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	// Normals (location = 1)
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
+
+	// UVs (location = 2)
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	glEnableVertexAttribArray(2);
 
 	// GROUND
 	unsigned int groundVBO, groundVAO;
@@ -176,12 +180,16 @@ int main()
 	glBindBuffer(GL_ARRAY_BUFFER, groundVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(groundVertices), groundVertices, GL_STATIC_DRAW);
 	// Position (location = 0)
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	// UVs (location = 1)
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	// Normals (location = 1)
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
+
+	// UVs (location = 2)
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	glEnableVertexAttribArray(2);
 
 	// LIGHT - seperate VAO as lights do not need uv's or normals
 	unsigned int lightVAO;
@@ -189,7 +197,7 @@ int main()
 	glBindVertexArray(lightVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	
 
@@ -208,7 +216,6 @@ int main()
 	groundShader.Activate();
 	groundShader.setVec3("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
 	groundShader.setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
-
 
 	/*
 			----------------- MAIN LOOP -----------------
@@ -241,7 +248,9 @@ int main()
 		// pass uniforms that change per frame
 		groundShader.setMat4("projection", projection); // projection matrix
 		groundShader.setMat4("view", view); // camera/view transformation
-		
+		groundShader.setVec3("lightPosition", lightPosition);
+		groundShader.setVec3("viewPosition", camera.Position);
+
 		// transformations
 		glm::mat4 groundModel = glm::mat4(1.0f);
 		groundModel = glm::translate(groundModel, glm::vec3(0.0f, -1.0f, 0.0f));
@@ -264,6 +273,8 @@ int main()
 		// uniforms
 		ourShader.setMat4("projection", projection);
 		ourShader.setMat4("view", view);
+		ourShader.setVec3("lightPosition", lightPosition);
+		ourShader.setVec3("viewPosition", camera.Position);
 
 		// crate1 transformations
 		glm::mat4 crate1 = glm::mat4(1.0f);
@@ -296,7 +307,11 @@ int main()
 
 		// transformations
 		glm::mat4 light = glm::mat4(1.0f);
-		light = glm::translate(light, lightPos);
+		light = glm::rotate(light, glm::radians(static_cast<float>(deltaTime) * 100.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		glm::vec4 rotated = light * glm::vec4(lightPosition, 1.0f);
+		lightPosition = glm::vec3(rotated);
+		light = glm::translate(light, lightPosition);
+		light = glm::scale(light, glm::vec3(0.25f, 0.25f, 0.25f));
 		lightShader.setMat4("model", light);
 
 		// render
@@ -400,15 +415,15 @@ void processInput(GLFWwindow* window)
 		glfwSetWindowShouldClose(window, true);
 
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		camera.ProcessKeyboard(FORWARD, deltaTime, FPS);
+		camera.ProcessKeyboard(FORWARD, deltaTime, FREE);
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camera.ProcessKeyboard(BACKWARD, deltaTime, FPS);
+		camera.ProcessKeyboard(BACKWARD, deltaTime, FREE);
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		camera.ProcessKeyboard(LEFT, deltaTime, FPS);
+		camera.ProcessKeyboard(LEFT, deltaTime, FREE);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		camera.ProcessKeyboard(RIGHT, deltaTime, FPS);
+		camera.ProcessKeyboard(RIGHT, deltaTime, FREE);
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-		camera.ProcessKeyboard(UP, deltaTime, FPS);
+		camera.ProcessKeyboard(UP, deltaTime, FREE);
 
 	// view in wireframe
 	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)

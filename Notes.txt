@@ -41,3 +41,38 @@ model = glm::rotate(model, angle, axis);
 model = glm::translate(model, -pivotPoint);
 
 - Translated to a point, rotated, then translated back
+
+Notes on Basic Lighting
+---------------------------
+Lighting in OpenGL is based on approximations of reality using simplified models.
+One of these models is called the Phong lighting model.
+
+Phong lighting is composed of three parts: ambient, diffuse, and specular lighting
+
+DEF:
+	Ambient: even when it is dark there is usually still some light somewhere in the
+		world (the moon, a distant light) so objects are almost never completely dark. To simulate
+		this we use an ambient lighting constant that always gives the object some color.
+
+		We can add ambient lighting by taking the color of the light and multiplying it with a small
+		constant ambient factor. Then we multiply that with the color of the object and use that as the color
+	
+	Diffuse: simulates the directional impact a light object has on an object. This is the
+		most visually significant component of the lighting model. The more a part of an object faces
+		the light source, the brighter it becomes.
+
+		What we need to calculate diffuse lighting:
+		- Normal vector: a vector that is perpendicular to the vertex surface
+		- Directed light ray: a direction vector that is the difference vector between the light's position and the fragment's position.
+
+	Specular: simulates the bright spot of a light that appears on shiny objects. Specular
+		highlights are more inclined to the color of the light than the color of the object.
+
+		To add specular lighting to a scene, we first calculate a reflection vector by reflecting the light
+		direction around the normal vector. Then we calculate the angular distance between this reflection
+		vector and the view direction. The closer the angle between them, the greater the impact of the specular
+		light. The resulting effect is that we see a bit of a highlight when looking at the light's direction 
+		reflected via the surface.
+
+		So we calculate the view vector, then the specular intensity, and multiply this with the light color and
+		add to the ambient and diffuse components
