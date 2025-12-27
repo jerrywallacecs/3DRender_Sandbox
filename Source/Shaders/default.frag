@@ -2,7 +2,7 @@
 
 struct Material {
 	sampler2D diffuse;
-	vec3 specular;
+	sampler2D specular;
 	float shininess;
 };
 
@@ -43,8 +43,7 @@ void main()
 	// then that the max of that to ensure it isn't negative. Then raise it
 	// to the power of x. Note that x is the shininess value of the highlight
 	float spec = pow(max(dot(viewDirection, reflectionDirection), 0.0), material.shininess);
-	vec3 specular = light.specular * (spec * material.specular);
+	vec3 specular = light.specular * spec * vec3(texture(material.specular, TextureCoords));
 
-	vec3 result = ambient + diffuse + specular;
-	FragColor = vec4(result, 1.0);
+	FragColor = vec4(ambient + diffuse + specular, 1.0);
 }

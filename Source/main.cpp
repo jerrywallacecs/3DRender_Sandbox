@@ -164,11 +164,13 @@ int main()
 	*/
 
 	// loading texture
-	unsigned int crateMap = loadTexture("../../../Source/Textures/container2.png");
+	unsigned int crateDiffuse = loadTexture("../../../Source/Textures/container2.png");
+	unsigned int crateSpecular = loadTexture("../../../Source/Textures/container2_specular_colored.png");
 
 	// shader configuration
 	materialShader.Activate();
 	materialShader.setInt("material.diffuse", 0);
+	materialShader.setInt("material.specular", 1);
 
 	/*
 			----------------- MAIN LOOP -----------------
@@ -201,7 +203,6 @@ int main()
 		materialShader.setVec3("light.specular", glm::vec3(1.0f, 1.0f, 1.0f));
 
 		// material properties
-		materialShader.setVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
 		materialShader.setFloat("material.shininess", 64.0f);
 
 		// world transformation
@@ -215,7 +216,9 @@ int main()
 		materialShader.setProjectionMatrix(projection);
 
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, crateMap);
+		glBindTexture(GL_TEXTURE_2D, crateDiffuse);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, crateSpecular);
 
 		// render
 		glBindVertexArray(VAO);
