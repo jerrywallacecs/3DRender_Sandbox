@@ -23,18 +23,19 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 // light source
-glm::vec3 lightPosition(0.0f, 1.0f, 2.0f);
+glm::vec3 lightPosition(1.2f, 1.0f, 2.0f);
 
 int main()
 {
-	glfwInit(); // GLFW init
-
-	// versions and profile
+	// glfw: initialize and configure
+	// ------------------------------
+	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	// windowed
+	// glfw window creation
+	// --------------------
 	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "LearnOpenGL", nullptr, nullptr);
 
 	// fullscreen
@@ -54,7 +55,8 @@ int main()
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
 
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // hides the cursor and captures it
+	// tell opengl to capture our mouse
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
@@ -62,16 +64,16 @@ int main()
 		return -1;
 	}
 
-	glViewport(0, 0, WIDTH, HEIGHT);
-
-	// enables depth buffer
+	// configure global opengl state
+	// -----------------------------
 	glEnable(GL_DEPTH_TEST);
 
-	// currently using relative paths. works but need to fix cmake
-	Shader ourShader("../../../Source/Shaders/default.vert", "../../../Source/Shaders/default.frag");
-	Shader groundShader("../../../Source/Shaders/default.vert", "../../../Source/Shaders/default.frag");
-	Shader lightShader("../../../Source/Shaders/light.vert", "../../../Source/Shaders/light.frag");
+	// build and compile our shader program
+	// ------------------------------------
+	Shader materialShader("../../../Source/Shaders/default.vert", "../../../Source/Shaders/default.frag");
+	Shader lightSourceShader("../../../Source/Shaders/light.vert", "../../../Source/Shaders/light.frag");
 
+	// set up vertex data (and buffer(s)) and configure vertex attributes
 	float vertices[] = {
 		// Position				// NORMALS				// UV
 		-0.5f, -0.5f, -0.5f,	0.0f, 0.0f, -1.0f,	    0.0f, 0.0f,
@@ -117,31 +119,6 @@ int main()
 		-0.5f,  0.5f, -0.5f,	0.0f, 1.0f, 0.0f,		0.0f, 1.0f
 	};
 
-	glm::vec3 cubePosition[] = {
-		glm::vec3(-5.0f, 2.5f, -10.0f),
-		glm::vec3(8.0f, 5.0f, -20.0f),
-		glm::vec3(-10.0f, 3.0f, -5.0f),
-		glm::vec3(12.0f, 4.2f, -15.0f),
-		glm::vec3(3.0f, 2.8f, -8.0f),
-		glm::vec3(-7.0f, 3.5f, -12.0f),
-		glm::vec3(5.0f, 2.2f, -3.0f),
-		glm::vec3(10.0f, 2.7f, -6.0f),
-		glm::vec3(-3.0f, 3.0f, -1.0f),
-		glm::vec3(0.0f, 2.4f, -18.0f)
-	};
-
-	float groundVertices[] =
-	{
-		// Position             // Normal        // UV
-		-15.0f, 0.0f, -15.0f,   0,1,0,            0.0f, 0.0f,
-		 15.0f, 0.0f, -15.0f,   0,1,0,           10.0f, 0.0f,
-		 15.0f, 0.0f,  15.0f,   0,1,0,           10.0f,10.0f,
-
-		-15.0f, 0.0f, -15.0f,   0,1,0,            0.0f, 0.0f,
-		 15.0f, 0.0f,  15.0f,   0,1,0,           10.0f,10.0f,
-		-15.0f, 0.0f,  15.0f,   0,1,0,            0.0f,10.0f
-	};
-
 	/* 
 		----------------- BUFFERS -----------------
 	*/
@@ -172,25 +149,6 @@ int main()
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 	glEnableVertexAttribArray(2);
 
-	// GROUND
-	unsigned int groundVBO, groundVAO;
-	glGenVertexArrays(1, &groundVAO);
-	glGenBuffers(1, &groundVBO);
-	glBindVertexArray(groundVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, groundVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(groundVertices), groundVertices, GL_STATIC_DRAW);
-	// Position (location = 0)
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	// Normals (location = 1)
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-
-	// UVs (location = 2)
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-	glEnableVertexAttribArray(2);
-
 	// LIGHT - seperate VAO as lights do not need uv's or normals
 	unsigned int lightVAO;
 	glGenVertexArrays(1, &lightVAO);
@@ -205,17 +163,12 @@ int main()
 		----------------- END OF BUFFERS -----------------
 	*/
 
-	unsigned int crateTexture = loadTexture("../../../Source/Textures/T_Crate.jpg");
-	unsigned int mossTexture = loadTexture("../../../Source/Textures/T_MossBrick.png");
-	
-	// some lighting ya know the vibes
-	ourShader.Activate();
-	ourShader.setVec3("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
-	ourShader.setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+	// loading texture
+	unsigned int crateMap = loadTexture("../../../Source/Textures/container2.png");
 
-	groundShader.Activate();
-	groundShader.setVec3("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
-	groundShader.setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+	// shader configuration
+	materialShader.Activate();
+	materialShader.setInt("material.diffuse", 0);
 
 	/*
 			----------------- MAIN LOOP -----------------
@@ -224,97 +177,61 @@ int main()
 	while (!glfwWindowShouldClose(window))
 	{
 		// per-frame time logic
+		// --------------------
 		float currentFrame = static_cast<float>(glfwGetTime());
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
-		glm::mat4 view = camera.GetViewMatrix();
-
+		// input
+		// -----
 		processInput(window);
 
+		// render
+		// ------
 		glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
-		// clean the two buffers and assign the new color
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		//////////////////////////////////////////////////////////
+		materialShader.Activate();
+		materialShader.setVec3("light.position", lightPosition);
+		materialShader.setVec3("viewPosition", camera.Position);
 
-		// GROUND RENDER
-		groundShader.Activate();
-		glActiveTexture(GL_TEXTURE0); // select texture unit 0
-		glBindTexture(GL_TEXTURE_2D, mossTexture); // bind texture
-		groundShader.setInt("m_texture", 0); // tell the shader to use texture unit 0
+		// light properties
+		materialShader.setVec3("light.ambient", glm::vec3(1.0f, 1.0f, 1.0f)); // note that all light colors are set at full intensity
+		materialShader.setVec3("light.diffuse", glm::vec3(1.0f, 1.0f, 1.0f));
+		materialShader.setVec3("light.specular", glm::vec3(1.0f, 1.0f, 1.0f));
 
-		// pass uniforms that change per frame
-		groundShader.setMat4("projection", projection); // projection matrix
-		groundShader.setMat4("view", view); // camera/view transformation
-		groundShader.setVec3("lightPosition", lightPosition);
-		groundShader.setVec3("viewPosition", camera.Position);
+		// material properties
+		materialShader.setVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+		materialShader.setFloat("material.shininess", 64.0f);
 
-		// transformations
-		glm::mat4 groundModel = glm::mat4(1.0f);
-		groundModel = glm::translate(groundModel, glm::vec3(0.0f, -1.0f, 0.0f));
-		groundShader.setMat4("model", groundModel);
+		// world transformation
+		glm::mat4 model = glm::mat4(1.0f);
+		materialShader.setModelMatrix(model);
+
+		// view/projection transformation
+		glm::mat4 view = camera.GetViewMatrix();
+		materialShader.setViewMatrix(view);
+		glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
+		materialShader.setProjectionMatrix(projection);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, crateMap);
 
 		// render
-		glBindVertexArray(groundVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-
-		//////////////////////////////////////////////////////////
-
-		// CRATE RENDER
-		ourShader.Activate();
-
-		// textures
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, crateTexture);
-		ourShader.setInt("m_texture", 0);
-
-		// uniforms
-		ourShader.setMat4("projection", projection);
-		ourShader.setMat4("view", view);
-		ourShader.setVec3("lightPosition", lightPosition);
-		ourShader.setVec3("viewPosition", camera.Position);
-
-		// crate1 transformations
-		glm::mat4 crate1 = glm::mat4(1.0f);
-		crate1 = glm::translate(crate1, glm::vec3(0.0f, -0.5f, 0.0f));
-		ourShader.setMat4("model", crate1);
-
-		// crate1 render
-		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-
-		// crate2 transformations
-		glm::mat4 crate2 = glm::mat4(1.0f);
-		crate2 = glm::translate(crate2, glm::vec3(0.0f, 0.375f, 0.0f));
-		crate2 = glm::rotate(crate2, glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // args: matrix to rotate, amount of rotation in radians, axis of rotation
-		crate2 = glm::scale(crate2, glm::vec3(0.75f, 0.75f, 0.75f));
-		ourShader.setMat4("model", crate2);
-
-		// crate2 render
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		//////////////////////////////////////////////////////////
 
 		// LIGHT RENDER
-		lightShader.Activate();
+		lightSourceShader.Activate();
+		lightSourceShader.setMat4("projection", projection);
+		lightSourceShader.setMat4("view", view);
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, lightPosition);
+		model = glm::scale(model, glm::vec3(0.2f)); // smaller cube
+		lightSourceShader.setMat4("model", model);
 
-		// uniforms
-		lightShader.setMat4("projection", projection);
-		lightShader.setMat4("view", view);
-
-		// transformations
-		glm::mat4 light = glm::mat4(1.0f);
-		light = glm::rotate(light, glm::radians(static_cast<float>(deltaTime) * 100.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		glm::vec4 rotated = light * glm::vec4(lightPosition, 1.0f);
-		lightPosition = glm::vec3(rotated);
-		light = glm::translate(light, lightPosition);
-		light = glm::scale(light, glm::vec3(0.25f, 0.25f, 0.25f));
-		lightShader.setMat4("model", light);
-
-		// render
 		glBindVertexArray(lightVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
@@ -327,10 +244,8 @@ int main()
 
 	// cleanup
 	glDeleteVertexArrays(1, &VAO);
-	glDeleteBuffers(1, &VBO);
-	glDeleteVertexArrays(1, &groundVAO);
-	glDeleteBuffers(1, &groundVBO);
 	glDeleteVertexArrays(1, &lightVAO);
+	glDeleteBuffers(1, &VBO);
 
 	glfwTerminate();
 
@@ -364,7 +279,7 @@ unsigned int loadTexture(const char* filepath)
 	// could use a function here
 	if (textureData)
 	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, textureWidth, textureHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, textureData);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureData);
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 	else
@@ -424,6 +339,8 @@ void processInput(GLFWwindow* window)
 		camera.ProcessKeyboard(RIGHT, deltaTime, FREE);
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 		camera.ProcessKeyboard(UP, deltaTime, FREE);
+	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+		camera.ProcessKeyboard(DOWN, deltaTime, FREE);
 
 	// view in wireframe
 	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)

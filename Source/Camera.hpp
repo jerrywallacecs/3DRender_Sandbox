@@ -15,7 +15,8 @@ enum Camera_Movement
 	BACKWARD,
 	LEFT,
 	RIGHT,
-	UP
+	UP,
+	DOWN
 };
 
 // defines camera types
@@ -96,6 +97,8 @@ public:
 				Position += Right * velocity;
 			if (direction == UP)
 				Position += WorldUp * velocity;
+			if (direction == DOWN)
+				Position -= WorldUp * velocity;
 		}
 
 		// classic fps camera, locked to x/z plane

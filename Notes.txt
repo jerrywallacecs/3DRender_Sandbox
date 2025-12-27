@@ -57,6 +57,8 @@ DEF:
 		We can add ambient lighting by taking the color of the light and multiplying it with a small
 		constant ambient factor. Then we multiply that with the color of the object and use that as the color
 	
+		Ambient lighting is a simplified version of Global Illumination
+
 	Diffuse: simulates the directional impact a light object has on an object. This is the
 		most visually significant component of the lighting model. The more a part of an object faces
 		the light source, the brighter it becomes.

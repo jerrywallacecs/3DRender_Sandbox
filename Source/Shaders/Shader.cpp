@@ -132,3 +132,18 @@ void Shader::setVec3(const std::string& name, const glm::vec3& vector) const
 {
 	glUniform3f(glGetUniformLocation(ID, name.c_str()), vector.x, vector.y, vector.z);
 }
+
+void Shader::setModelMatrix(const glm::mat4& matrix) const
+{
+	glUniformMatrix4fv(glGetUniformLocation(ID, "model"), 1, GL_FALSE, glm::value_ptr(matrix));
+}
+
+void Shader::setViewMatrix(const glm::mat4& matrix) const
+{
+	glUniformMatrix4fv(glGetUniformLocation(ID, "view"), 1, GL_FALSE, glm::value_ptr(matrix));
+}
+
+void Shader::setProjectionMatrix(const glm::mat4& matrix) const
+{
+	glUniformMatrix4fv(glGetUniformLocation(ID, "projection"), 1, GL_FALSE, glm::value_ptr(matrix));
+}
