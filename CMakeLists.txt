@@ -1,8 +1,8 @@
 ﻿cmake_minimum_required (VERSION 3.28)
 
-project("OpenGL_Framework")
+project("OpenGL_Lessons")
 
-add_executable(OpenGL_Framework
+add_executable(OpenGL_Lessons
 	"Source/main.cpp"
 	"Source/main.h"
 	"Source/Camera.hpp"
@@ -13,7 +13,7 @@ add_executable(OpenGL_Framework
 )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET OpenGL_Framework PROPERTY CXX_STANDARD 20)
+  set_property(TARGET OpenGL_Lessons PROPERTY CXX_STANDARD 20)
 endif()
 
 add_library(ThirdParty INTERFACE)
@@ -28,9 +28,9 @@ target_link_libraries(ThirdParty
 	${CMAKE_SOURCE_DIR}/Libraries/Lib/glfw3.lib
 )
 
-target_link_libraries(OpenGL_Framework PRIVATE ThirdParty)
+target_link_libraries(OpenGL_Lessons PRIVATE ThirdParty)
 
-target_include_directories(OpenGL_Framework
+target_include_directories(OpenGL_Lessons
 	PRIVATE
 	${CMAKE_SOURCE_DIR}/Source/Shaders
 )

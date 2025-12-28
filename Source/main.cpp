@@ -119,6 +119,30 @@ int main()
 		-0.5f,  0.5f, -0.5f,	0.0f, 1.0f, 0.0f,		0.0f, 1.0f
 	};
 
+	glm::vec3 cubePositions[] = {
+
+		glm::vec3(-5.0f, 2.5f, -10.0f),
+
+		glm::vec3(8.0f, 5.0f, -20.0f),
+
+		glm::vec3(-10.0f, 3.0f, -5.0f),
+
+		glm::vec3(12.0f, 4.2f, -15.0f),
+
+		glm::vec3(3.0f, 2.8f, -8.0f),
+
+		glm::vec3(-7.0f, 3.5f, -12.0f),
+
+		glm::vec3(5.0f, 2.2f, -3.0f),
+
+		glm::vec3(10.0f, 2.7f, -6.0f),
+
+		glm::vec3(-3.0f, 3.0f, -1.0f),
+
+		glm::vec3(0.0f, 2.4f, -18.0f)
+
+	};
+
 	/* 
 		----------------- BUFFERS -----------------
 	*/
@@ -196,17 +220,27 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		materialShader.Activate();
-		materialShader.setVec3("light.position", lightPosition);
 		materialShader.setVec3("viewPosition", camera.Position);
+		materialShader.setVec3("light.position", camera.Position);
+		// needed to get normalized direction vector from world position for spotlight
+		glm::vec3 target = glm::vec3(3.0f, 2.8f, -8.0f);
+		glm::vec3 direction = glm::normalize(target - lightPosition);
+		materialShader.setVec3("light.direction", camera.Front);
+		materialShader.setFloat("light.innerCutoff", glm::cos(glm::radians(12.5f)));
+		materialShader.setFloat("light.outerCutoff", glm::cos(glm::radians(17.5f)));
 
 		// light properties
-		materialShader.setVec3("light.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
-		materialShader.setVec3("light.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
+		materialShader.setVec3("light.ambient", glm::vec3(0.1f, 0.1f, 0.1f));
+		materialShader.setVec3("light.diffuse", glm::vec3(0.8f, 0.8f, 0.8f));
 		materialShader.setVec3("light.specular", glm::vec3(1.0f, 1.0f, 1.0f));
 		materialShader.setFloat("light.emissiveStrength", glm::max(static_cast<float>(glm::sin(glfwGetTime())), 0.0f));
 
+		materialShader.setFloat("light.constant", 1.0f);
+		materialShader.setFloat("light.linear", 0.09f);
+		materialShader.setFloat("light.quadratic", 0.032f);
+
 		// material properties
-		materialShader.setFloat("material.shininess", 64.0f);
+		materialShader.setFloat("material.shininess", 32.0f);
 
 		// world transformation
 		glm::mat4 model = glm::mat4(1.0f);
@@ -229,6 +263,18 @@ int main()
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
+		// directional light demo
+		for (unsigned int i = 0; i < 10; i++)
+		{
+			glm::mat4 model2 = glm::mat4(1.0f);
+			model2 = glm::translate(model2, cubePositions[i]);
+			float angle = 20.0f * i;
+			model = glm::rotate(model2, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+			materialShader.setModelMatrix(model2);
+
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
+
 		//////////////////////////////////////////////////////////
 
 		// LIGHT RENDER
@@ -242,7 +288,6 @@ int main()
 
 		glBindVertexArray(lightVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
-
 
 		// swap buffers and poll IO events
 		glfwSwapBuffers(window);
