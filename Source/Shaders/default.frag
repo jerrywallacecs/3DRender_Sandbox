@@ -127,5 +127,5 @@ void spotLight()
 
 void main()
 {
-	spotLight();
+	pointLight();
 }

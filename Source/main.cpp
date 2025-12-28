@@ -221,11 +221,11 @@ int main()
 
 		materialShader.Activate();
 		materialShader.setVec3("viewPosition", camera.Position);
-		materialShader.setVec3("light.position", camera.Position);
+		materialShader.setVec3("light.position", lightPosition);
 		// needed to get normalized direction vector from world position for spotlight
 		glm::vec3 target = glm::vec3(3.0f, 2.8f, -8.0f);
 		glm::vec3 direction = glm::normalize(target - lightPosition);
-		materialShader.setVec3("light.direction", camera.Front);
+		//materialShader.setVec3("light.direction", camera.Front);
 		materialShader.setFloat("light.innerCutoff", glm::cos(glm::radians(12.5f)));
 		materialShader.setFloat("light.outerCutoff", glm::cos(glm::radians(17.5f)));
 
@@ -233,7 +233,7 @@ int main()
 		materialShader.setVec3("light.ambient", glm::vec3(0.1f, 0.1f, 0.1f));
 		materialShader.setVec3("light.diffuse", glm::vec3(0.8f, 0.8f, 0.8f));
 		materialShader.setVec3("light.specular", glm::vec3(1.0f, 1.0f, 1.0f));
-		materialShader.setFloat("light.emissiveStrength", glm::max(static_cast<float>(glm::sin(glfwGetTime())), 0.0f));
+		materialShader.setFloat("light.emissiveStrength", 0.0f);
 
 		materialShader.setFloat("light.constant", 1.0f);
 		materialShader.setFloat("light.linear", 0.09f);
@@ -284,6 +284,16 @@ int main()
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, lightPosition);
 		model = glm::scale(model, glm::vec3(0.2f)); // smaller cube
+		
+		// animating
+		float radius = 3.0f;
+		float time = glfwGetTime();
+
+		lightPosition.x = cos(time) * radius;
+		lightPosition.z = sin(time) * radius;
+		lightPosition.y = 1.0f;
+		model = glm::translate(model, lightPosition);
+
 		lightSourceShader.setModelMatrix(model);
 
 		glBindVertexArray(lightVAO);
