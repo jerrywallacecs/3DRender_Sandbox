@@ -166,11 +166,13 @@ int main()
 	// loading texture
 	unsigned int crateDiffuse = loadTexture("../../../Source/Textures/container2.png");
 	unsigned int crateSpecular = loadTexture("../../../Source/Textures/container2_specular_colored.png");
+	unsigned int crateEmission = loadTexture("../../../Source/Textures/matrix.jpg");
 
 	// shader configuration
 	materialShader.Activate();
 	materialShader.setInt("material.diffuse", 0);
 	materialShader.setInt("material.specular", 1);
+	materialShader.setInt("material.emission", 2);
 
 	/*
 			----------------- MAIN LOOP -----------------
@@ -198,9 +200,10 @@ int main()
 		materialShader.setVec3("viewPosition", camera.Position);
 
 		// light properties
-		materialShader.setVec3("light.ambient", glm::vec3(1.0f, 1.0f, 1.0f)); // note that all light colors are set at full intensity
-		materialShader.setVec3("light.diffuse", glm::vec3(1.0f, 1.0f, 1.0f));
+		materialShader.setVec3("light.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
+		materialShader.setVec3("light.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
 		materialShader.setVec3("light.specular", glm::vec3(1.0f, 1.0f, 1.0f));
+		materialShader.setFloat("light.emissiveStrength", glm::max(static_cast<float>(glm::sin(glfwGetTime())), 0.0f));
 
 		// material properties
 		materialShader.setFloat("material.shininess", 64.0f);
@@ -219,6 +222,8 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, crateDiffuse);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, crateSpecular);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, crateEmission);
 
 		// render
 		glBindVertexArray(VAO);
@@ -228,12 +233,12 @@ int main()
 
 		// LIGHT RENDER
 		lightSourceShader.Activate();
-		lightSourceShader.setMat4("projection", projection);
-		lightSourceShader.setMat4("view", view);
+		lightSourceShader.setViewMatrix(view);
+		lightSourceShader.setProjectionMatrix(projection);
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, lightPosition);
 		model = glm::scale(model, glm::vec3(0.2f)); // smaller cube
-		lightSourceShader.setMat4("model", model);
+		lightSourceShader.setModelMatrix(model);
 
 		glBindVertexArray(lightVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -276,14 +281,32 @@ unsigned int loadTexture(const char* filepath)
 
 	stbi_set_flip_vertically_on_load(true);
 
+	// channels:
+	// 1	grayscale	GL_RED
+	// 3	RGB			GL_RGB
+	// 4	RGBA		GL_RGBA
+
 	// load the texture data
 	textureData = stbi_load(filepath, &textureWidth, &textureHeight, &textureChannels, 0);
 
 	// could use a function here
 	if (textureData)
 	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureData);
-		glGenerateMipmap(GL_TEXTURE_2D);
+		switch (textureChannels)
+		{
+		case 1:
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, textureWidth, textureHeight, 0, GL_RED, GL_UNSIGNED_BYTE, textureData);
+			glGenerateMipmap(GL_TEXTURE_2D);
+			break;
+		case 3:
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, textureWidth, textureHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, textureData);
+			glGenerateMipmap(GL_TEXTURE_2D);
+			break;
+		case 4:
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureData);
+			glGenerateMipmap(GL_TEXTURE_2D);
+			break;
+		}
 	}
 	else
 	{
