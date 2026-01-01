@@ -14,7 +14,9 @@ add_executable(OpenGL_Lessons
 	"Source/Mesh.cpp" 
 	"Source/Model.h" 
 	"Source/Model.cpp"
- "Source/Textures/Texture.cpp" "Source/Textures/Texture.h")
+	"Source/Textures/Texture.cpp" 
+	"Source/Textures/Texture.h"
+)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET OpenGL_Lessons PROPERTY CXX_STANDARD 20)
@@ -38,4 +40,11 @@ target_link_libraries(OpenGL_Lessons PRIVATE ThirdParty)
 target_include_directories(OpenGL_Lessons
 	PRIVATE
 	${CMAKE_SOURCE_DIR}/Source/Shaders
+)
+
+# handling assimp dll
+add_custom_command(TARGET OpenGL_Lessons POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different
+	${CMAKE_SOURCE_DIR}/Libraries/DLL/assimp-vc143-mt.dll
+	$<TARGET_FILE_DIR:OpenGL_Lessons>
 )

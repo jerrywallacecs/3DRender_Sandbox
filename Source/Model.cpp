@@ -1,6 +1,6 @@
 #include "Model.h"
 
-Model::Model(char* path)
+Model::Model(const char* path)
 {
 	loadModel(path);
 }
@@ -117,9 +117,30 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
 	{
 		aiString str;
 		mat->GetTexture(type, i, &str);
-		Texture texture;
-		texture.id = TextureFromFile(str.C_Str(), directory);
+		bool skip = false;
+		for (unsigned int k = 0; k < loadedTextures.size(); k++)
+		{
+			if (std::strcmp(loadedTextures[k].path.data(), str.C_Str()) == 0)
+			{
+				textures.push_back(loadedTextures[k]);
+				skip = true;
+				break;
+			}
+		}
+
+		// if texture hasn't been loaded already, then we load it
+		if (!skip)
+		{
+			Texture texture;
+			texture.id = TextureFromFile(str.C_Str(), directory);
+			texture.type = typeName;
+			texture.path = str.C_Str();
+			textures.push_back(texture);
+			loadedTextures.push_back(texture);
+		}
 	}
+
+	return textures;
 }
 
 void Model::Draw(Shader& shader)

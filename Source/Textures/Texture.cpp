@@ -1,12 +1,12 @@
 #include "Texture.h"
-#include "Shader.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "../External/stb_image.h" // public domain image loader
 
 // takes in filepath and returns an ID for the texture that was created from that texture file
-unsigned int TextureFromFile(const char* path, std::string& directory)
+unsigned int TextureFromFile(const char* path, const std::string& directory)
 {
+	std::string filename = directory + "/" + std::string(path);
 	int textureWidth;
 	int textureHeight;
 	int textureChannels;
@@ -31,7 +31,7 @@ unsigned int TextureFromFile(const char* path, std::string& directory)
 	// 4	RGBA		GL_RGBA
 
 	// load the texture data
-	textureData = stbi_load(path, &textureWidth, &textureHeight, &textureChannels, 0);
+	textureData = stbi_load(filename.c_str(), &textureWidth, &textureHeight, &textureChannels, 0);
 
 	// could use a function here
 	if (textureData)

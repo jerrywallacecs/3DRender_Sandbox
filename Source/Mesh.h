@@ -14,6 +14,7 @@ struct Vertex {
 struct Texture {
 	unsigned int id;
 	std::string type;
+	std::string path; // used to compare with other textures
 };
 
 class Mesh {

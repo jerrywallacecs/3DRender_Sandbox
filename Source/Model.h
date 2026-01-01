@@ -2,6 +2,7 @@
 #define MODEL_H
 
 #include "Mesh.h"
+#include "Textures/Texture.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -9,13 +10,14 @@
 class Model
 {
 public:
-	Model(char* path);
+	Model(const char* path);
 
 	void Draw(Shader& shader);
 
 private:
 	// model data
 	std::vector<Mesh> meshes;
+	std::vector<Texture> loadedTextures;
 	std::string directory;
 
 	void loadModel(std::string path);

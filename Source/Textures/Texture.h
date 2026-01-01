@@ -1,7 +1,7 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
-#include <string>
+#include "Shader.h"
 
 unsigned int TextureFromFile(const char* path, const std::string& directory);
 
