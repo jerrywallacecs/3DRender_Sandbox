@@ -10,7 +10,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 const unsigned int WIDTH = 1280;
 const unsigned int HEIGHT = 720;
 
-glm::vec4 backgroundColor(0.025f, 0.025f, 0.025f, 1.0f);
+glm::vec4 backgroundColor(0.05f, 0.05f, 0.05f, 1.0f);
 
 // camera
 Camera camera(glm::vec3(0.0f, 1.0f, 2.0f));
@@ -217,6 +217,13 @@ int main()
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
+		// caps framerate to 60fps
+		if (1 / deltaTime > 60.0f)
+		{
+			deltaTime = 1.0f / 60.0f;
+		}
+		std::cout << "current framerate: " << (1 / deltaTime) << std::endl;
+
 		// input
 		// -----
 		processInput(window);
@@ -231,15 +238,15 @@ int main()
 		materialShader.setFloat("material.shininess", 32.0f);
 
 		// directional light
-		materialShader.setVec3("directionalLight.direction", glm::vec3(- 0.2f, -1.0f, -0.3f));
-		materialShader.setVec3("directionalLight.ambient", glm::vec3(0.05, 0.05f, 0.05f));
-		materialShader.setVec3("directionalLight.diffuse", glm::vec3(0.4f, 0.4f, 0.4f));
-		materialShader.setVec3("directionalLight.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+		materialShader.setVec3("directionalLight.direction", glm::vec3(-0.2f, -1.0f, -0.3f));
+		materialShader.setVec3("directionalLight.ambient", glm::vec3(0.5f, 0.5f, 0.5f));
+		materialShader.setVec3("directionalLight.diffuse", glm::vec3(0.5f, 1.0f, 1.0f));
+		materialShader.setVec3("directionalLight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
 
 		// point lights
 		materialShader.setVec3("pointLights[0].position", pointLightPositions[0]);
-		materialShader.setVec3("pointLights[0].ambient", glm::vec3(0.05f, 0.05f, 0.05f));
-		materialShader.setVec3("pointLights[0].diffuse", glm::vec3(0.8f, 0.8f, 0.8f));
+		materialShader.setVec3("pointLights[0].ambient", glm::vec3(0.0f, 1.0f, 0.0f));
+		materialShader.setVec3("pointLights[0].diffuse", glm::vec3(0.8f, 1.0f, 0.8f));
 		materialShader.setVec3("pointLights[0].specular", glm::vec3(1.0f, 1.0f, 1.0f));
 		materialShader.setFloat("pointLights[0].constant", 1.0f);
 		materialShader.setFloat("pointLights[0].linear", 0.09f);
@@ -333,7 +340,6 @@ int main()
 		glfwPollEvents();
 	}
 
-
 	// cleanup
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteVertexArrays(1, &lightVAO);
@@ -344,7 +350,7 @@ int main()
 	return 0;
 }
 
-// takes in filepath and returns a texture that was created from that texture file
+// takes in filepath and returns an ID for the texture that was created from that texture file
 unsigned int loadTexture(const char* filepath)
 {
 	int textureWidth;
@@ -460,15 +466,5 @@ void processInput(GLFWwindow* window)
 	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_RELEASE)
 	{
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	}
-
-	// light mode
-	if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
-	{
-		backgroundColor = { 1.0f, 1.0f, 1.0f, 1.0f };
-	}
-	if (glfwGetKey(window, GLFW_KEY_L) == GLFW_RELEASE)
-	{
-		backgroundColor = { 0.025f, 0.025f, 0.025f, 1.0f };
 	}
 }

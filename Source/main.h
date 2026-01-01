@@ -3,6 +3,7 @@
 
 #include "Shader.h"
 #include "Camera.hpp"
+#include "Mesh.h"
 
 #include <GLFW/glfw3.h> // util lib for window, io, and context management
 
