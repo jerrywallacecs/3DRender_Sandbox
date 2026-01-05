@@ -1,6 +1,7 @@
 ﻿#include "main.h"
 
 #include "Textures/Texture.h"
+#include "../UnitCube.h"
 
 void processInput(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -11,10 +12,10 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 const unsigned int SCREEN_WIDTH = 1280;
 const unsigned int SCREEN_HEIGHT = 720;
 
-glm::vec4 backgroundColor(0.05f, 0.05f, 0.05f, 1.0f);
+glm::vec4 backgroundColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 // camera
-Camera camera(glm::vec3(0.0f, 1.0f, 2.0f));
+Camera camera(glm::vec3(0.0f, 0.5f, 2.0f));
 bool firstMouse = true;
 float lastX = (float)SCREEN_WIDTH / 2.0;
 float lastY = (float)SCREEN_HEIGHT / 2.0;
@@ -163,7 +164,7 @@ int main()
 	glBindVertexArray(0);
 
 	// load textures
-	unsigned int cubeTexture = TextureFromFile("Source/Resources/Textures/stoneDiffuse.png", "../../../");
+	unsigned int cubeTexture = TextureFromFile("Source/Resources/Textures/pixelBase.jpg", "../../../");
 	unsigned int planeTexture = TextureFromFile("Source/Resources/Textures/metalDiffuse.jpg", "../../../");
 
 	depthTestingShader.Activate();
@@ -171,8 +172,11 @@ int main()
 
 	// load model
 	Model mainModel("../../../Source/Resources/Models/backpack/backpack.obj");
-
 	
+	// load unit cube (textured cube)
+	UnitCube thisCube(cubeTexture);
+
+
 	// render loop
 	while (!glfwWindowShouldClose(window))
 	{
@@ -263,8 +267,8 @@ int main()
 		mainShader.setViewMatrix(view);
 		mainShader.setProjectionMatrix(projection);
 		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.0f, static_cast<float>(glm::sin(glfwGetTime() * 5.0f)), 0.0f));
 		model = glm::scale(model, glm::vec3(0.25f, 0.25f, 0.25f));
+		model = glm::rotate(model, static_cast<float>(glfwGetTime()), glm::vec3(0.0f, 1.0f, 0.0f));
 		mainShader.setModelMatrix(model);
 		
 		if (viewOutline)
@@ -275,6 +279,36 @@ int main()
 		{
 			mainModel.Draw(mainShader);
 		}
+
+		// unit cube testing
+		depthTestingShader.Activate();
+		depthTestingShader.setViewMatrix(view);
+		depthTestingShader.setProjectionMatrix(projection);
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.0f, 0.5f, 5.0f));
+		model = glm::scale(model, glm::vec3(10.0f, 2.0f, 0.25f));
+		depthTestingShader.setModelMatrix(model);
+		thisCube.Draw(depthTestingShader);
+
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.0f, 0.5f, -5.0f));
+		model = glm::scale(model, glm::vec3(10.0f, 2.0f, 0.25));
+		depthTestingShader.setModelMatrix(model);
+		thisCube.Draw(depthTestingShader);
+
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(5.0f, 0.5f, 0.0f));
+		model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(10.0f, 2.0f, 0.25f));
+		depthTestingShader.setModelMatrix(model);
+		thisCube.Draw(depthTestingShader);
+
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-5.0f, 0.5f, 0.0f));
+		model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(10.0f, 2.0f, 0.25f));
+		depthTestingShader.setModelMatrix(model);
+		thisCube.Draw(depthTestingShader);
 
 		// swap buffers and poll IO events
 		glfwSwapBuffers(window);
@@ -332,17 +366,17 @@ void processInput(GLFWwindow* window)
 
 	// camera controls
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		camera.ProcessKeyboard(FORWARD, deltaTime, FREE);
+		camera.ProcessKeyboard(FORWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camera.ProcessKeyboard(BACKWARD, deltaTime, FREE);
+		camera.ProcessKeyboard(BACKWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		camera.ProcessKeyboard(LEFT, deltaTime, FREE);
+		camera.ProcessKeyboard(LEFT, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		camera.ProcessKeyboard(RIGHT, deltaTime, FREE);
+		camera.ProcessKeyboard(RIGHT, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-		camera.ProcessKeyboard(UP, deltaTime, FREE);
+		camera.ProcessKeyboard(UP, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-		camera.ProcessKeyboard(DOWN, deltaTime, FREE);
+		camera.ProcessKeyboard(DOWN, deltaTime);
 
 	// sprinting
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)

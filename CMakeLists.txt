@@ -16,6 +16,8 @@ add_executable(OpenGL_Lessons
 	"Source/Model.cpp"
 	"Source/Textures/Texture.cpp" 
 	"Source/Textures/Texture.h"
+	"UnitCube.h" 
+	"UnitCube.cpp"
 )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)

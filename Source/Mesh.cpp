@@ -38,7 +38,6 @@ void Mesh::setupMesh()
 	glBindVertexArray(0);
 }
 
-// REFACTOR: USE A SEPERATE FUNCTION | one with outline, one without
 void Mesh::Draw(Shader& shader)
 {
 	unsigned int diffuseNr = 1;

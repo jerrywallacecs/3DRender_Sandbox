@@ -42,6 +42,7 @@ public:
 	glm::vec3 Up;
 	glm::vec3 Right;
 	glm::vec3 WorldUp;
+	Camera_Type camType = FREE;
 
 	// Camera Options
 	float MovementSpeed;
@@ -80,12 +81,12 @@ public:
 	}
 
 	// keyboard input handler
-	void ProcessKeyboard(Camera_Movement direction, float deltaTime, Camera_Type type)
+	void ProcessKeyboard(Camera_Movement direction, float deltaTime)
 	{
 		float velocity = MovementSpeed * deltaTime;
 
 		// free cam
-		if (type == FREE)
+		if (camType == FREE)
 		{
 			if (direction == FORWARD)
 				Position += Front * velocity;
@@ -102,7 +103,7 @@ public:
 		}
 
 		// classic fps camera, locked to x/z plane
-		if (type == FPS)
+		if (camType == FPS)
 		{
 			glm::vec3 moveDirection = Front;
 			moveDirection.y = 0.0f;
