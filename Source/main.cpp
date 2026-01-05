@@ -23,6 +23,9 @@ float lastY = (float)SCREEN_HEIGHT / 2.0;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+// model outline
+bool viewOutline = false;
+
 int main()
 {
 	// glfw: initialize and configure
@@ -167,7 +170,7 @@ int main()
 	depthTestingShader.setInt("texture1", 0);
 
 	// load model
-	//Model mainModel("../../../Source/Resources/Models/backpack/backpack.obj");
+	Model mainModel("../../../Source/Resources/Models/backpack/backpack.obj");
 
 	
 	// render loop
@@ -255,6 +258,24 @@ int main()
 		glStencilFunc(GL_ALWAYS, 0, 0xFF);
 		glEnable(GL_DEPTH_TEST);
 
+		// model
+		mainShader.Activate();
+		mainShader.setViewMatrix(view);
+		mainShader.setProjectionMatrix(projection);
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.0f, static_cast<float>(glm::sin(glfwGetTime() * 5.0f)), 0.0f));
+		model = glm::scale(model, glm::vec3(0.25f, 0.25f, 0.25f));
+		mainShader.setModelMatrix(model);
+		
+		if (viewOutline)
+		{
+			mainModel.Draw(mainShader, outlineShader, model);
+		}
+		else
+		{
+			mainModel.Draw(mainShader);
+		}
+
 		// swap buffers and poll IO events
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -337,5 +358,15 @@ void processInput(GLFWwindow* window)
 	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_RELEASE)
 	{
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
+
+	// view model outline
+	if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
+	{
+		viewOutline = true;
+	}
+	if (glfwGetKey(window, GLFW_KEY_L) == GLFW_RELEASE)
+	{
+		viewOutline = false;
 	}
 }

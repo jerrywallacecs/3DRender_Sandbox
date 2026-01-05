@@ -13,6 +13,7 @@ public:
 	Model(const char* path);
 
 	void Draw(Shader& shader);
+	void Draw(Shader& shader, Shader& outlineShader, glm::mat4& modelMatrix);
 
 private:
 	// model data

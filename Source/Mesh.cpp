@@ -38,6 +38,7 @@ void Mesh::setupMesh()
 	glBindVertexArray(0);
 }
 
+// REFACTOR: USE A SEPERATE FUNCTION | one with outline, one without
 void Mesh::Draw(Shader& shader)
 {
 	unsigned int diffuseNr = 1;
@@ -64,8 +65,62 @@ void Mesh::Draw(Shader& shader)
 	}
 	glActiveTexture(GL_TEXTURE0);
 
-	// draw mesh
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
+}
+
+// need to add 2nd render pass with outline
+void Mesh::Draw(Shader& shader, Shader& outlineShader, glm::mat4& modelMatrix)
+{
+	shader.Activate();
+
+	unsigned int diffuseNr = 1;
+	unsigned int specularNr = 1;
+
+	for (unsigned int i = 0; i < textures.size(); i++)
+	{
+		glActiveTexture(GL_TEXTURE0 + i); // activate texture unit first
+
+		// retrieve texture number from naming convention (N in diffuse_textureN)
+		std::string number;
+		std::string name = textures[i].type;
+		if (name == "texture_diffuse")
+		{
+			number = std::to_string(diffuseNr++);
+		}
+		else if (name == "texture_specular")
+		{
+			number = std::to_string(specularNr++);
+		}
+
+		shader.setFloat(("material." + name + number).c_str(), i);
+		glBindTexture(GL_TEXTURE_2D, textures[i].id);
+	}
+	glActiveTexture(GL_TEXTURE0);
+
+	// 1st render pass. draw mesh as normal & write to stencil buffer
+	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	glStencilMask(0xFF);
+
+	glBindVertexArray(VAO);
+	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+
+	// 2nd render pass. draw mesh scaled without writing to stencil buffer
+	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+	glStencilMask(0x00);
+	glDisable(GL_DEPTH_TEST);
+
+	outlineShader.Activate();
+	float scale = 1.05f;
+	glBindVertexArray(VAO);
+	glm::mat4 model = glm::mat4(1.0f);
+	model = modelMatrix;
+	model = glm::scale(model, glm::vec3(scale, scale, scale));
+	outlineShader.setModelMatrix(model);
+	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+	glStencilMask(0xFF);
+	glStencilFunc(GL_ALWAYS, 0, 0xFF);
+	glEnable(GL_DEPTH_TEST);
 }
