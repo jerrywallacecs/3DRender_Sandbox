@@ -47,6 +47,11 @@ unsigned int TextureFromFile(const char* path, const std::string& directory)
 			glGenerateMipmap(GL_TEXTURE_2D);
 			break;
 		case 4:
+			// since we are using transparent values, we should set the
+			// wrapping method to clamp to edge to prevent a slightly semi
+			// transparent colored border wrapped around our textured quad
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureData);
 			glGenerateMipmap(GL_TEXTURE_2D);
 			break;

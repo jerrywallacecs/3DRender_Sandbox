@@ -1,8 +1,5 @@
 ﻿#include "main.h"
 
-#include "Textures/Texture.h"
-#include "../UnitCube.h"
-
 void processInput(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -38,12 +35,12 @@ int main()
 
 	// glfw window creation
 	// --------------------
-	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "LearnOpenGL", nullptr, nullptr);
+	//GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "LearnOpenGL", nullptr, nullptr);
 
 	// fullscreen
-	//GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-	//const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-	//GLFWwindow* window = glfwCreateWindow(mode->width, mode->height, "LearnOpenGL", monitor, nullptr);
+	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+	GLFWwindow* window = glfwCreateWindow(mode->width, mode->height, "LearnOpenGL", monitor, nullptr);
 
 	if (window == nullptr)
 	{
@@ -76,11 +73,15 @@ int main()
 	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
+	glEnable(GL_BLEND); // render images with different levels of transparency
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+
 	// build and compile our shader program
 	// ------------------------------------
 	Shader mainShader("../../../Source/Shaders/default.vert", "../../../Source/Shaders/default.frag");
-	Shader depthTestingShader("../../../Source/Shaders/depth.vert", "../../../Source/Shaders/depth.frag");
-	Shader outlineShader("../../../Source/Shaders/depth.vert", "../../../Source/Shaders/outline.frag");
+	Shader basicShader("../../../Source/Shaders/basic.vert", "../../../Source/Shaders/basic.frag");
+	Shader outlineShader("../../../Source/Shaders/basic.vert", "../../../Source/Shaders/outline.frag");
 
 	// vertex data and buffers
 	float cubeVertices[] = {
@@ -165,16 +166,51 @@ int main()
 
 	// load textures
 	unsigned int cubeTexture = TextureFromFile("Source/Resources/Textures/pixelBase.jpg", "../../../");
-	unsigned int planeTexture = TextureFromFile("Source/Resources/Textures/metalDiffuse.jpg", "../../../");
-
-	depthTestingShader.Activate();
-	depthTestingShader.setInt("texture1", 0);
+	//unsigned int planeTexture = TextureFromFile("Source/Resources/Textures/metalDiffuse.jpg", "../../../");
+	unsigned int planeTexture = TextureFromFile("Source/Resources/Textures/ground.png", "../../../");
+	unsigned int windowTexture = TextureFromFile("Source/Resources/Textures/window.png", "../../../");
 
 	// load model
 	Model mainModel("../../../Source/Resources/Models/backpack/backpack.obj");
 	
-	// load unit cube (textured cube)
+	// load unit cube (1x1 textured cube)
 	UnitCube thisCube(cubeTexture);
+	UnitCube windowCube(windowTexture);
+
+	// VEGETATION
+	std::vector<glm::vec3> vegetation;
+	vegetation.push_back(glm::vec3(-1.5f, 0.0f, -0.48f));
+	vegetation.push_back(glm::vec3(1.5f, 0.0f, 0.51f));
+	vegetation.push_back(glm::vec3(0.0f, 0.0f, 0.7f));
+	vegetation.push_back(glm::vec3(-0.3f, 0.0f, -2.3f));
+	vegetation.push_back(glm::vec3(0.5f, 0.0f, -0.6f));
+
+	unsigned int grassTexture = TextureFromFile("Source/Resources/Textures/grass.png", "../../../");
+
+	// note that we are repeating vertices due to not using a EBO
+	float vegetationVertices[] =
+	{
+		-0.5f, 0.5f, 0.0f, 0.0f, 1.0f, // top left
+		0.5f, 0.5f, 0.0f, 1.0f, 1.0f, // top right
+		-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // bottom left
+
+		0.5f, 0.5f, 0.0f, 1.0f, 1.0f, // top right
+		0.5f, -0.5f, 0.0f, 1.0f, 0.0f, // bottom right
+		-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // bottom left
+	};
+
+	unsigned int grassVAO, grassVBO;
+	glGenVertexArrays(1, &grassVAO);
+	glGenBuffers(1, &grassVBO);
+	glBindVertexArray(grassVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, grassVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vegetationVertices), &vegetationVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	glBindVertexArray(0);
+
 
 
 	// render loop
@@ -185,7 +221,7 @@ int main()
 		float currentFrame = static_cast<float>(glfwGetTime());
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
-		std::cout << "current framerate: " << (1 / deltaTime) << std::endl;
+		//std::cout << "current framerate: " << (1 / deltaTime) << std::endl;
 
 		// input
 		// -----
@@ -204,9 +240,9 @@ int main()
 		outlineShader.setViewMatrix(view);
 		outlineShader.setProjectionMatrix(projection);
 
-		depthTestingShader.Activate();
-		depthTestingShader.setViewMatrix(view);
-		depthTestingShader.setProjectionMatrix(projection);
+		basicShader.Activate();
+		basicShader.setViewMatrix(view);
+		basicShader.setProjectionMatrix(projection);
 
 		// draw floor as normal, but don't write the floor to the stencil buffer.
 		// we only care about the containers.
@@ -216,7 +252,7 @@ int main()
 		glBindVertexArray(planeVAO);
 		glBindTexture(GL_TEXTURE_2D, planeTexture);
 		model = glm::mat4(1.0f);
-		depthTestingShader.setModelMatrix(model);
+		basicShader.setModelMatrix(model);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		glBindVertexArray(0);
 
@@ -229,11 +265,11 @@ int main()
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, cubeTexture);
 		model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
-		depthTestingShader.setModelMatrix(model);
+		basicShader.setModelMatrix(model);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
-		depthTestingShader.setModelMatrix(model);
+		basicShader.setModelMatrix(model);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		// 2nd render pass. draw slightly scaled versions of the objects
@@ -280,35 +316,84 @@ int main()
 			mainModel.Draw(mainShader);
 		}
 
+		// to make blending work, we draw the most distant object
+		// first and the closest object last
+		// ---------------------------------
+		// when drawing a scene with non-transparent and transparent
+		// objects the general outline is as follows:
+		// 1. Draw all opaque objects first
+		// 2. Sort transparent objects
+		// 3. Draw transparent objects in order
+
+		// basic rotating unit cube
+		basicShader.Activate();
+		basicShader.setViewMatrix(view);
+		basicShader.setProjectionMatrix(projection);
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.0f, 5.0f, 0.0f));
+		model = glm::rotate(model, glm::radians(static_cast<float>(glfwGetTime() * 20.0f)), glm::vec3(0.0f, 1.0f, 0.0f));
+		basicShader.setModelMatrix(model);
+		windowCube.Draw(basicShader);
+
 		// unit cube testing
-		depthTestingShader.Activate();
-		depthTestingShader.setViewMatrix(view);
-		depthTestingShader.setProjectionMatrix(projection);
+		basicShader.Activate();
+		basicShader.setViewMatrix(view);
+		basicShader.setProjectionMatrix(projection);
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(0.0f, 0.5f, 5.0f));
 		model = glm::scale(model, glm::vec3(10.0f, 2.0f, 0.25f));
-		depthTestingShader.setModelMatrix(model);
-		thisCube.Draw(depthTestingShader);
+		basicShader.setModelMatrix(model);
+		thisCube.Draw(basicShader);
 
+		// walls
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(0.0f, 0.5f, -5.0f));
 		model = glm::scale(model, glm::vec3(10.0f, 2.0f, 0.25));
-		depthTestingShader.setModelMatrix(model);
-		thisCube.Draw(depthTestingShader);
+		basicShader.setModelMatrix(model);
+		thisCube.Draw(basicShader);
 
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(5.0f, 0.5f, 0.0f));
 		model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::scale(model, glm::vec3(10.0f, 2.0f, 0.25f));
-		depthTestingShader.setModelMatrix(model);
-		thisCube.Draw(depthTestingShader);
+		basicShader.setModelMatrix(model);
+		thisCube.Draw(basicShader);
 
+
+		// OUTLINE TEST
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(-5.0f, 0.5f, 0.0f));
 		model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::scale(model, glm::vec3(10.0f, 2.0f, 0.25f));
-		depthTestingShader.setModelMatrix(model);
-		thisCube.Draw(depthTestingShader);
+		basicShader.setModelMatrix(model);
+		thisCube.Draw(basicShader);
+
+		// VEGETATION
+		glBindVertexArray(grassVAO);
+		glBindTexture(GL_TEXTURE_2D, grassTexture);
+
+		// sort grass textures
+		std::map<float, glm::vec3> sortedGrass;
+		for (unsigned int i = 0; i < vegetation.size(); i++)
+		{
+			float distance = glm::length(camera.Position - vegetation[i]);
+			sortedGrass[distance] = vegetation[i];
+		}
+
+		// render grass textures in order
+		for (std::map<float, glm::vec3>::reverse_iterator it = sortedGrass.rbegin(); it != sortedGrass.rend(); ++it)
+		{
+			model = glm::mat4(1.0f);
+			model = glm::translate(model, it->second);
+
+			// make the grass face the camera at all times
+			glm::vec3 direction = camera.Position - it->second;
+			float angle = glm::atan(direction.x, direction.z); // note this returns angle in radians, not degrees so we dont have to use glm::radians(angle)
+			model = glm::rotate(model, angle, glm::vec3(0.0f, 1.0f, 0.0f));
+
+			basicShader.setModelMatrix(model);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+		}
 
 		// swap buffers and poll IO events
 		glfwSwapBuffers(window);

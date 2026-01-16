@@ -16,9 +16,9 @@ add_executable(OpenGL_Lessons
 	"Source/Model.cpp"
 	"Source/Textures/Texture.cpp" 
 	"Source/Textures/Texture.h"
-	"UnitCube.h" 
-	"UnitCube.cpp"
-)
+	"Source/UnitCube.h" 
+	"Source/UnitCube.cpp"
+  )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET OpenGL_Lessons PROPERTY CXX_STANDARD 20)
