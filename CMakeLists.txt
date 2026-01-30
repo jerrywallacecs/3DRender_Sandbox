@@ -1,8 +1,8 @@
 ﻿cmake_minimum_required (VERSION 3.28)
 
-project("OpenGL_Lessons")
+project("RenderSandbox")
 
-add_executable(OpenGL_Lessons
+add_executable(RenderSandbox
 	"Source/main.cpp"
 	"Source/main.h"
 	"Source/Camera.hpp"
@@ -18,10 +18,10 @@ add_executable(OpenGL_Lessons
 	"Source/Textures/Texture.h"
 	"Source/UnitCube.h" 
 	"Source/UnitCube.cpp"
-  )
+    )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET OpenGL_Lessons PROPERTY CXX_STANDARD 20)
+  set_property(TARGET RenderSandbox PROPERTY CXX_STANDARD 20)
 endif()
 
 add_library(ThirdParty INTERFACE)
@@ -37,16 +37,16 @@ target_link_libraries(ThirdParty
 	${CMAKE_SOURCE_DIR}/Libraries/Lib/assimp-vc143-mt.lib
 )
 
-target_link_libraries(OpenGL_Lessons PRIVATE ThirdParty)
+target_link_libraries(RenderSandbox PRIVATE ThirdParty)
 
-target_include_directories(OpenGL_Lessons
+target_include_directories(RenderSandbox
 	PRIVATE
 	${CMAKE_SOURCE_DIR}/Source/Shaders
 )
 
 # handling assimp dll
-add_custom_command(TARGET OpenGL_Lessons POST_BUILD
+add_custom_command(TARGET RenderSandbox POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy_if_different
 	${CMAKE_SOURCE_DIR}/Libraries/DLL/assimp-vc143-mt.dll
-	$<TARGET_FILE_DIR:OpenGL_Lessons>
+	$<TARGET_FILE_DIR:RenderSandbox>
 )

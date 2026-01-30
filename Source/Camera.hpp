@@ -76,7 +76,7 @@ public:
 	// returns the view matrix calculated using Euler Angles and the LookAt Matrix
 	glm::mat4 GetViewMatrix()
 	{
-		//return glm::lookAt(Position, Position + Front, Up);
+		// return glm::lookAt(Position, Position + Front, Up);
 		return Look(Position, Position + Front, Up);
 	}
 
@@ -152,7 +152,7 @@ public:
 			fov = FOV;
 	}
 
-	// custom implementation of the LookAt function
+	// custom implementation of the glm::LookAt function
 	glm::mat4 Look(glm::vec3 position, glm::vec3 target, glm::vec3 worldUp)
 	{
 		// calculate camera direction

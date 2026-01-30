@@ -5,9 +5,12 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
+std::vector<UnitCube> bullets = {};
+
 // settings
 const unsigned int SCREEN_WIDTH = 1280;
 const unsigned int SCREEN_HEIGHT = 720;
+bool fullscreen = false;
 
 glm::vec4 backgroundColor(0.0f, 0.0f, 0.0f, 1.0f);
 
@@ -35,12 +38,15 @@ int main()
 
 	// glfw window creation
 	// --------------------
-	//GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "LearnOpenGL", nullptr, nullptr);
+
+	// glfw window creation
+	// --------------------
+	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "LearnOpenGL", nullptr, nullptr);
 
 	// fullscreen
-	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+	/*GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-	GLFWwindow* window = glfwCreateWindow(mode->width, mode->height, "LearnOpenGL", monitor, nullptr);
+	GLFWwindow* window = glfwCreateWindow(mode->width, mode->height, "LearnOpenGL", monitor, nullptr);*/
 
 	if (window == nullptr)
 	{
@@ -298,7 +304,7 @@ int main()
 		glStencilFunc(GL_ALWAYS, 0, 0xFF);
 		glEnable(GL_DEPTH_TEST);
 
-		// model
+		// 3d model
 		mainShader.Activate();
 		mainShader.setViewMatrix(view);
 		mainShader.setProjectionMatrix(projection);
@@ -325,7 +331,7 @@ int main()
 		// 2. Sort transparent objects
 		// 3. Draw transparent objects in order
 
-		// basic rotating unit cube
+		// basic rotating window cube
 		basicShader.Activate();
 		basicShader.setViewMatrix(view);
 		basicShader.setProjectionMatrix(projection);
@@ -335,7 +341,7 @@ int main()
 		basicShader.setModelMatrix(model);
 		windowCube.Draw(basicShader);
 
-		// unit cube testing
+		// unit cube
 		basicShader.Activate();
 		basicShader.setViewMatrix(view);
 		basicShader.setProjectionMatrix(projection);
@@ -393,6 +399,24 @@ int main()
 
 			basicShader.setModelMatrix(model);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
+		}
+
+		// SHOOTING
+		if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS)
+		{
+			UnitCube Bullet(cubeTexture);
+			bullets.push_back(Bullet);
+		}
+
+		std::cout << "number of bullets: " << bullets.size() << std::endl;
+
+		for (unsigned int i = 0; i < bullets.size(); i++)
+		{
+			basicShader.Activate();
+			model = glm::mat4(1.0f);
+			model = glm::translate(model, glm::vec3(0.0f, static_cast<float>(i), 2.0f));
+			basicShader.setModelMatrix(model);
+			bullets[i].Draw(basicShader);
 		}
 
 		// swap buffers and poll IO events
