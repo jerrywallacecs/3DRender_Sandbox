@@ -41,7 +41,17 @@ The repository incrementally implements core graphics programming concepts, incl
 
 ## Current Features
 
+## Lighting
 https://github.com/user-attachments/assets/a7aa44d3-4c2a-407c-9135-455bd4dcc7c8
+
+## Lighting
+https://github.com/user-attachments/assets/d5f2e7ed-37b8-4f0c-a7ee-93f0ddbc6dcd
+
+## Model Loading With Assimp
+https://github.com/user-attachments/assets/68313c20-4ff4-44ba-b2e3-ca97dcaa16b2
+
+## Shader Outline
+https://github.com/user-attachments/assets/2dda4c73-f936-47ff-a6b3-b0404822618a
 
 - Textured cubes rendered in 3D space
 - Scalable ground plane with tiled textures
