@@ -1,10 +1,10 @@
-# OpenGL_Lessons
+# 3D Render Sandbox
 
 <img width="1274" height="712" alt="OpenGL_Phong" src="https://github.com/user-attachments/assets/ee964454-bc73-41ec-9051-5005e7059421" />
 
 ## Overview
 
-This is my hands-on journey through *LearnOpenGL*, where I implement concepts from scratch to deeply understand how modern OpenGL works under the hood.
+This is my hands-on journey through computer graphics, where I implement concepts from scratch to deeply understand how modern OpenGL works under the hood.
 
 This repository focuses on **learning by doing**. The goal is not just to render things, but to understand *why* they work.
 
@@ -73,10 +73,6 @@ https://github.com/user-attachments/assets/a7aa44d3-4c2a-407c-9135-455bd4dcc7c8
 
 - To **build strong fundamentals in graphics programming**
 - To avoid black-box engines early on
-- To prepare for:
-  - Engine development
-  - Rendering internships
-  - Shader and GPU-focused work
 
 Everything here is intentionally verbose and explicit — clarity over convenience.
 
